@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#FBF7F5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Nagelatelier">
+<title>Nagelatelier</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="globaldefs"></defs></svg>
+
+<div id="app">
+  <header class="top">
+    <button class="ic" id="btnGal" aria-label="Mijn designs">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>
+    </button>
+    <div class="brand">Nagel<em>atelier</em></div>
+    <div class="acts">
+      <button class="ic" id="btnUndo" aria-label="Ongedaan maken"><svg viewBox="0 0 24 24"><path d="M9 7 4.5 11.5 9 16"/><path d="M5 11.5h9.5a5 5 0 0 1 0 10H12"/></svg></button>
+      <button class="ic" id="btnRedo" aria-label="Opnieuw"><svg viewBox="0 0 24 24"><path d="m15 7 4.5 4.5L15 16"/><path d="M19 11.5H9.5a5 5 0 0 0 0 10H12"/></svg></button>
+      <button class="ic" id="btnShare" aria-label="Delen"><svg viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="m7.5 8 4.5-4.5L16.5 8"/><path d="M6 12.5v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5"/></svg></button>
+    </div>
+  </header>
+
+  <main id="stageWrap">
+    <svg id="stage" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="stagebar" id="stagebar">
+      <div class="seg" id="viewSeg"><button data-v="hand">Hand</button><button data-v="tips">Alle tien</button></div>
+      <button class="pill" id="handSw"></button>
+    </div>
+    <div class="focusbar" id="focusbar">
+      <button class="pill back" id="focusBack"><svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>Terug</button>
+      <div class="focustitle" id="focusTitle"></div>
+      <span></span>
+    </div>
+    <button class="arrow left" id="prevNail" aria-label="Vorige nagel"><svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg></button>
+    <button class="arrow right" id="nextNail" aria-label="Volgende nagel"><svg viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></button>
+    <button class="selpill" id="selPill"></button>
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <section id="panel">
+    <div id="panelBody"></div>
+    <nav id="tabs">
+      <button data-tab="vorm"><svg viewBox="0 0 24 24"><path d="M8 20.5c-1.7 0-2.5-1.2-2.5-3V9.5C5.5 5.6 8.4 3 12 3s6.5 2.6 6.5 6.5v8c0 1.8-.8 3-2.5 3Z"/></svg><span>Vorm</span></button>
+      <button data-tab="kleur"><svg viewBox="0 0 24 24"><path d="M12 3.2c3.6 4.3 6 7.6 6 10.6a6 6 0 0 1-12 0c0-3 2.4-6.3 6-10.6Z"/></svg><span>Kleur</span></button>
+      <button data-tab="effect"><svg viewBox="0 0 24 24"><path d="M12 3c.7 3.9 2.1 5.3 6 6-3.9.7-5.3 2.1-6 6-.7-3.9-2.1-5.3-6-6 3.9-.7 5.3-2.1 6-6Z"/><path d="M18.5 15.5c.3 1.6.9 2.2 2.5 2.5-1.6.3-2.2.9-2.5 2.5-.3-1.6-.9-2.2-2.5-2.5 1.6-.3 2.2-.9 2.5-2.5Z"/></svg><span>Effect</span></button>
+      <button data-tab="deco"><svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10Z"/></svg><span>Versiering</span></button>
+      <button data-tab="idee"><svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/></svg><span>Ideeën</span></button>
+    </nav>
+  </section>
+</div>
+
+<!-- Galerij -->
+<div class="sheet" id="galSheet" aria-hidden="true">
+  <div class="sheetcard">
+    <div class="sheethead"><h2>Mijn designs</h2><button class="ic" data-close aria-label="Sluiten"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="galacts">
+      <button class="btn primary" id="btnSave">Bewaar dit design</button>
+      <button class="btn" id="btnNew">Nieuw design</button>
+    </div>
+    <div class="galgrid" id="galGrid"></div>
+  </div>
+</div>
+
+<!-- Delen -->
+<div class="sheet" id="shareSheet" aria-hidden="true">
+  <div class="sheetcard">
+    <div class="sheethead"><h2>Delen</h2><button class="ic" data-close aria-label="Sluiten"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="sharepreview"><img id="shareImg" alt="Je design"></div>
+    <div class="galacts">
+      <button class="btn primary" id="btnDoShare">Delen</button>
+      <a class="btn" id="btnDownload" download="nageldesign.png">Bewaar als foto</a>
+    </div>
+  </div>
+</div>
+
+<div class="ghost" id="ghost"></div>
+
+<script src="data.js?v=1"></script>
+<script src="render.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
