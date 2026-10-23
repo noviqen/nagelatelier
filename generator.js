@@ -175,7 +175,7 @@ function genereer1({ sfeer = "verras", kleur = "vrij", niveau = 2 } = {}) {
   let h = kies(F.hoofd), a = kies(F.accent.filter((x) => x !== h)) || "#FFFFFF", dk = kies(F.deco);
   if (sfeer === "herfst" && kleur === "vrij") { h = kies(HERFST); }
   const res = stijl.maak({ h, a, dk, L, fam, sfeer, niv: niveau });
-  const vijf = res.nagels;
+  const vijf = verrijk(res.nagels, niveau, L, sfeer);
   return { shape, length, naam: res.naam, nails: vijf.concat(JSON.parse(JSON.stringify(vijf))), stijl: stijl.id };
 }
 
@@ -305,3 +305,99 @@ STIJLEN.push(
 );
 // regenboog/strepen tonen in de keuzes voor bestaande sferen
 ["zomer", "trendy"].forEach(() => {});
+
+// ---------- verrijken: meer lagen en details per nagel ----------
+const SOORT = {
+  bloem: ["hibiscus", "bloem", "madelief", "bloem3d"], dier: ["beer", "kat", "panda", "leeuw", "kikker", "konijn"],
+  insect: ["bij", "lieveheer"], fruit: ["kers", "aardbei"], zee: ["zeester", "schelp"], hemel: ["maan", "ster", "twinkel", "sneeuw", "wolkje"],
+};
+const soortVan = (t) => Object.keys(SOORT).find((k) => SOORT[k].includes(t));
+const binnen = (x, y, L) => [Math.max(-36, Math.min(36, x)), Math.max(-L + 14, Math.min(-12, y))];
+function plaats(lijst, t, x, y, s, c, L, r = 0) { const [px, py] = binnen(x, y, L); lijst.push(dc(t, px, py, s, c, r)); }
+
+const AANVUL = { ombre: ["french", "aura", "glitter"], aura: ["chroom", "french", "glitter"], chroom: ["swirl", "vfrench", "glitter"], cateye: ["glitter", "vfrench"],
+  french: ["golffrench", "vfrench", "glitter"], milky: ["french", "chroom", "glitter"], glitter: ["french", "vfrench"], schildpad: ["french", "glitter"], marmer: ["golffrench", "vfrench"], effen: ["glitter", "french", "swirl", "vfrench"] };
+function aanvul(n, fx) {
+  const m = JSON.parse(JSON.stringify(n)); m.fx = fx;
+  const donker = lum(n.c) < 0.35, kern = n.fx === "french" || n.fx === "ombre" ? n.c2 : n.c;
+  if (["french", "vfrench", "golffrench"].includes(fx)) { m.c = donker ? "#F2D7CF" : n.c; m.c2 = kern; if (fx === "golffrench") m.c3 = "#E9C46A"; }
+  else if (fx === "glitter") { m.c = n.fx === "ombre" || n.fx === "aura" ? n.c2 === "#FFFFFF" ? n.c : n.c2 : n.c; m.c2 = kies(["#E9C46A", "#D9DDE2"]); }
+  else if (fx === "swirl") { m.c = n.c; m.c2 = kies(["#E9C46A", "#FFFFFF"]); m.c3 = "#D9DDE2"; }
+  else if (fx === "aura") { m.c = "#F6E3DC"; m.c2 = donker ? n.c : n.c2 || "#E85A8A"; }
+  else if (fx === "chroom") { m.c = "#F4EEE9"; }
+  m.deco = [];
+  return m;
+}
+function verrijk(nagels, niveau, L, sfeer) {
+  // eentonige sets: één of twee nagels een aanvullende techniek
+  if (niveau >= 2 && nagels.every((n) => n.fx === nagels[0].fx && n.c === nagels[0].c && !(n.deco || []).length) && AANVUL[nagels[0].fx]) {
+    const opties = AANVUL[nagels[0].fx];
+    nagels[3] = aanvul(nagels[3], kies(opties));
+    if (niveau >= 3) nagels[1] = aanvul(nagels[1], kies(opties));
+  }
+  const kans1 = niveau >= 3 ? 0.9 : niveau === 2 ? 0.55 : 0.25;
+  let gedaan = 0;
+  nagels.forEach((n, i) => {
+    if (!kans(kans1) && !(niveau >= 3 && gedaan < 2 && i >= 3)) return;
+    const lichtBasis = lum(n.c) > 0.72;
+    const stipKl = lichtBasis ? kies(["goud", "#E85A8A", "#3A6EA5"]) : "#FFFFFF";
+    const d = n.deco || (n.deco = []);
+    const voor = d.length;
+    const hoofd = d.slice().sort((a, b) => b.s - a.s)[0];
+    if (hoofd && VERSIERING[hoofd.t]) {
+      const { x, y, s } = hoofd, so = soortVan(hoofd.t);
+      if (so === "bloem") {
+        const blad = kies(["#6E7B4F", "goud", "#2D6A4F"]);
+        plaats(d, "blad", x - s * 0.55, y + s * 0.42, s * 0.42, blad, L, -40);
+        if (niveau >= 3) plaats(d, "blad", x + s * 0.55, y + s * 0.38, s * 0.36, blad, L, 40);
+        if (niveau >= 3 && hoofd.t !== "bloem3d") plaats(d, hoofd.t, x + s * 0.5, y + s * 0.62, s * 0.55, hoofd.c, L, 25);
+        if (niveau >= 3 && hoofd.t === "bloem3d") plaats(d, "bloem3d", x - s * 0.45, y - s * 0.62, s * 0.5, hoofd.c, L, 30);
+        [[0.1, -0.68], [0.42, -0.5], [-0.42, -0.55]].slice(0, niveau >= 3 ? 3 : 2).forEach(([dx, dy], k) => plaats(d, "stip", x + s * dx, y + s * dy, 6 + k * 1.5, stipKl, L));
+      } else if (so === "dier") {
+        const hk = kies(["#E85A8A", "#F28DAA", "#C8102E"]);
+        plaats(d, "hart", x - s * 0.5, y - s * 0.55, s * 0.24, hk, L, -15);
+        plaats(d, "hart", x + s * 0.48, y - s * 0.45, s * 0.18, hk, L, 15);
+        if (niveau >= 3) { plaats(d, "strik", x + s * 0.32, y - s * 0.52, s * 0.34, kies(["#E85A8A", "#C8102E", "#FFFFFF", "#3A6EA5"]), L, 15); plaats(d, "twinkel", x + s * 0.48, y + s * 0.55, s * 0.24, "goud", L); plaats(d, "stip", x - s * 0.48, y + s * 0.58, 7, stipKl, L); }
+      } else if (so === "insect") {
+        plaats(d, kies(["madelief", "bloem"]), x + s * 0.35, y + s * 0.65, s * 0.42, "#FFFFFF", L);
+        [[-0.5, -0.4], [-0.62, -0.1], [-0.55, 0.22]].forEach(([dx, dy]) => plaats(d, "stip", x + s * dx, y + s * dy, 3.4, lichtBasis ? "#141214" : "#FFFFFF", L));
+      } else if (so === "fruit") {
+        plaats(d, "hart", x + s * 0.45, y - s * 0.6, s * 0.2, "#E85A8A", L, 12);
+        [[-0.5, -0.55], [0.5, 0.5], [-0.45, 0.55]].forEach(([dx, dy]) => plaats(d, "stip", x + s * dx, y + s * dy, 5, lichtBasis ? "#E63946" : "#FFFFFF", L));
+      } else if (so === "zee") {
+        plaats(d, "parel", x + s * 0.55, y + s * 0.4, 10, "#F4EEE6", L);
+        plaats(d, "bolletje", x - s * 0.5, y - s * 0.45, 7, "goud", L);
+        if (niveau >= 3) plaats(d, "bolletje", x - s * 0.15, y + s * 0.7, 5.5, "goud", L);
+      } else if (so === "hemel") {
+        plaats(d, "twinkel", x + s * 0.55, y - s * 0.4, s * 0.32, "goud", L);
+        plaats(d, "stip", x - s * 0.5, y + s * 0.5, 4.5, "goud", L);
+        if (niveau >= 3) plaats(d, "twinkel", x - s * 0.45, y - s * 0.6, s * 0.2, "goud", L);
+      } else if (hoofd.t === "hart") {
+        plaats(d, "hart", x + s * 0.6, y - s * 0.5, s * 0.5, hoofd.c, L, 15);
+        if (niveau >= 3) plaats(d, "hart", x - s * 0.55, y + s * 0.55, s * 0.4, hoofd.c, L, -15);
+      }
+    } else {
+      // kale nagel: kies een passend accent bij de techniek
+      const fr = ["french", "golffrench", "vfrench"].includes(n.fx);
+      const keuzes = n.fx === "regenboog" ? ["wolken"] : fr ? ["tiplijn", "riem", "steen"] : ["effen", "milky", "chroom", "aura", "ombre", "cateye", "glitter"].includes(n.fx) ? ["riem", "lijn", "sprinkel", "motief"] : ["riem", "steen", "bolletjes"];
+      const keuze = kies(keuzes);
+      const dTip = Math.max(30, (L - BED) * 0.85 + 18);
+      if (keuze === "wolken") { plaats(d, "wolkje", -34, -L * 0.13, 26, "#FFFFFF", L); plaats(d, "wolkje", 34, -L * 0.13, 22, "#FFFFFF", L); if (niveau >= 3) plaats(d, "twinkel", 0, -L * 0.62, 18, "goud", L); }
+      else if (keuze === "tiplijn") { d.push(dc("lijn", 0, -L + dTip + 2, 100, "goud", 0)); if (niveau >= 3) plaats(d, "steentje", 0, -L + dTip + 14, 9, "#FFFFFF", L); }
+      else if (keuze === "riem") { const t = kies(["steentje", "parel"]); (niveau >= 3 ? [-18, -9, 0, 9, 18] : [-12, 0, 12]).forEach((x, k, arr) => plaats(d, t, x, -22 - Math.abs(x) * -0.12, k === Math.floor(arr.length / 2) ? 15 : 12, t === "parel" ? "#F4EEE6" : "#FFFFFF", L)); }
+      else if (keuze === "lijn") { d.push(dc("lijn", 0, -L * 0.5, 110, kies(["goud", "zilver"]), kies([-30, 30, -60]))); if (niveau >= 3) plaats(d, "bolletje", 14, -L * 0.42, 6, "goud", L); }
+      else if (keuze === "sprinkel") { for (let k = 0; k < (niveau >= 3 ? 5 : 3); k++) plaats(d, kies(["twinkel", "stip", "stip"]), -20 + Math.random() * 40, -L * (0.25 + Math.random() * 0.5), 5 + Math.random() * 9, lichtBasis ? "goud" : "#FFFFFF", L, Math.random() * 40); }
+      else if (keuze === "motief") { const t = decoVoor(sfeer, niveau); d.push(...decoOp(t, L, lichtBasis ? (VERSIERING[t].kleur === "#FFFFFF" ? "goud" : VERSIERING[t].kleur) : "#FFFFFF", "midden")); }
+      else if (keuze === "steen") { plaats(d, "steentje", 0, -27, 17, "#FFFFFF", L); if (niveau >= 3) { plaats(d, "steentje", -13, -21, 11, "#FFFFFF", L); plaats(d, "steentje", 13, -21, 11, "#FFFFFF", L); } }
+      else plaats(d, "bolletje", 0, -24, 8, "goud", L);
+    }
+    // tweede laag bij uitdagend: rijtje steentjes/parels bij de nagelriem onder een hoog geplaatst motief
+    if (niveau >= 3 && hoofd && hoofd.y < -L * 0.38 && !d.some((q) => q.y > -30) && kans(0.5)) {
+      const t = kies(["steentje", "parel"]);
+      [-12, 0, 12].forEach((x, k) => plaats(d, t, x, -22, k === 1 ? 14 : 11, t === "parel" ? "#F4EEE6" : "#FFFFFF", L));
+    }
+    if (d.length > voor) gedaan++;
+    if (d.length > 11) d.length = 11;
+  });
+  return nagels;
+}

@@ -15,8 +15,8 @@ EFFECTEN.push(
 EFFECTEN.forEach((e) => (EFFECT[e.id] = e));
 
 const NIEUW_DECO = [
-  { id: "hibiscus", naam: "Hibiscus", kleur: "#3FA7D6", maat: 46 },
-  { id: "bloem3d", naam: "3D-bloem", kleur: "#3A6EA5", maat: 50 },
+  { id: "hibiscus", naam: "Hibiscus", kleur: "#3FA7D6", maat: 54 },
+  { id: "bloem3d", naam: "3D-bloem", kleur: "#3A6EA5", maat: 56 },
   { id: "schelp", naam: "Schelpje", kleur: "goud", maat: 26 },
   { id: "zeester", naam: "Zeester", kleur: "goud", maat: 28 },
   { id: "bolletje", naam: "Bolletje", kleur: "goud", maat: 10 },

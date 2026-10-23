@@ -57,6 +57,21 @@ function toast(t, ms = 2200) {
   toastT = setTimeout(() => el.classList.remove("on"), ms);
 }
 
+// snack met actie (bijv. ongedaan maken)
+let snackT;
+function snack(t, label, fn, ms = 4500) {
+  const el = $("#snack");
+  $("span", el).textContent = t;
+  const b = $("button", el);
+  b.textContent = label || "";
+  b.style.display = label ? "" : "none";
+  b.onclick = () => { el.classList.remove("on"); fn && fn(); };
+  el.classList.add("on");
+  clearTimeout(snackT);
+  snackT = setTimeout(() => el.classList.remove("on"), ms);
+}
+const herstel = () => { stap(undo, redo); };
+
 // ---------- podium ----------
 let vb = { x: 0, y: 0, w: 1, h: 1 };
 function setVB(x, y, w, h) {
@@ -172,7 +187,7 @@ function paneel() {
   } else if (S.tab === "effect") {
     h = `<div class="pane"><div class="hs">${EFFECTEN.map((e) => `<button class="fx ${n.fx === e.id ? "on" : ""}" data-fx="${e.id}">
         <div class="sv">${miniNail(metEffect({ ...n, deco: [] }, e.id), D.shape, "middel", 34)}</div>${e.naam}</button>`).join("")}</div>
-      <div class="row"><span class="lbl">Afwerking</span><div class="seg small light">${[["glans", "Glans"], ["mat", "Mat"]].map(([id, naam]) => `<button data-fin="${id}" class="${n.fin === id ? "on" : ""}">${naam}</button>`).join("")}</div></div></div>`;
+      <div class="row"><span class="lbl">Afwerking</span><div class="seg small light">${[["glans", "Glans"], ["mat", "Mat"]].map(([id, naam]) => `<button data-fin="${id}" class="${n.fin === id ? "on" : ""}">${naam}</button>`).join("")}</div><button class="wisknop" style="margin-left:auto" data-wis="effect"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>Wis effect</button></div></div>`;
   } else if (S.tab === "deco") {
     const sel = S.deco && D.nails[S.deco.i] && D.nails[S.deco.i].deco[S.deco.j];
     if (sel) {
@@ -187,7 +202,7 @@ function paneel() {
         <div class="dcols">${DECO_KLEUREN.map(([c, naam]) => `<button class="dcol ${c.startsWith("#") ? "" : c} ${sel.c === c ? "on" : ""}" data-dc="${c}" aria-label="${naam}" ${c.startsWith("#") ? `style="background:${c}"` : ""}></button>`).join("")}</div>
         <div class="dtools">${tool("kleiner", "Kleiner")}${tool("groter", "Groter")}${tool("links", "Draai")}${tool("rechts", "Draai")}${tool("alle", "Alle 10")}${tool("weg", "Weg", "del")}</div></div>`;
     } else {
-      h = `<div class="pane"><div class="phead"><div class="hint">Tik om toe te voegen, of sleep omhoog naar een nagel</div></div>
+      h = `<div class="pane"><div class="phead"><div class="hint">Tik om toe te voegen, of sleep naar een nagel</div><button class="wisknop" data-wis="deco"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>Wis</button></div>
         <div class="tray" id="tray">${VERSIERINGEN.map((v) => `<button class="tile" data-add="${v.id}" aria-label="${v.naam}">${miniDeco(v.id, 40)}</button>`).join("")}</div></div>`;
     }
   } else if (S.tab === "gen") {
@@ -271,6 +286,8 @@ $("#panelBody").addEventListener("click", (e) => {
   else if (ds.kw) { S.kw = ds.kw; paneel(); bewaar(); }
   else if (ds.niv) { S.niv = +ds.niv; paneel(); bewaar(); }
   else if (ds.gen) doeGenereer();
+  else if (ds.wis === "deco") wisVersieringen();
+  else if (ds.wis === "effect") wisEffect();
   else if (ds.plan) toonPlan();
   else if (ds.idee) laadIdee(+ds.idee);
   else if (ds.add && !trayDrag.used) voegToe(ds.add);
@@ -532,14 +549,28 @@ function sluitSheet(el) { el.classList.remove("on"); el.setAttribute("aria-hidde
 $$(".sheet").forEach((sh) => {
   sh.addEventListener("click", (e) => { if (e.target === sh || e.target.closest("[data-close]")) sluitSheet(sh); });
 });
+const RECENT = "nagelatelier.recent";
+const recent = () => { try { return JSON.parse(localStorage.getItem(RECENT) || "[]"); } catch (e) { return []; } };
+let galLijst = "bewaard";
+function lijstData() { return galLijst === "bewaard" ? galerij() : recent(); }
+function lijstOpslaan(g) { localStorage.setItem(galLijst === "bewaard" ? GALERIJ : RECENT, JSON.stringify(g)); }
 function toonGalerij() {
-  const g = galerij();
+  const g = lijstData();
+  $$("#galSeg button").forEach((b) => b.classList.toggle("on", b.dataset.lijst === galLijst));
+  $("#galWisAlles").style.visibility = g.length ? "visible" : "hidden";
   $("#galGrid").innerHTML = g.length
-    ? g.map((it, k) => `<div class="gcard" data-open="${k}">${miniSet(it.D, 150)}<b>${it.naam}</b><small>${new Date(it.t).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}</small><button class="x" data-del="${k}" aria-label="Verwijderen">×</button></div>`).join("")
-    : `<div class="gempty">Nog geen bewaarde designs.<br>Maak iets moois en tik op <b>Bewaar dit design</b>.</div>`;
+    ? g.map((it, k) => `<div class="gcard" data-open="${k}">${miniSet(it.D, 150)}<b>${it.naam}</b><small>${new Date(it.t).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}${galLijst === "recent" ? " · " + new Date(it.t).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }) : ""}</small><button class="x" data-del="${k}" aria-label="Verwijderen"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg></button></div>`).join("")
+    : `<div class="gempty">${galLijst === "bewaard" ? "Nog geen bewaarde designs.<br>Maak iets moois en tik op <b>Bewaar dit design</b>." : "Nog niets gegenereerd.<br>Elk design dat je genereert komt hier te staan."}</div>`;
   openSheet("#galSheet");
 }
-$("#btnGal").onclick = toonGalerij;
+$$("#galSeg button").forEach((b) => (b.onclick = () => { galLijst = b.dataset.lijst; toonGalerij(); }));
+$("#galWisAlles").onclick = () => {
+  const oud = lijstData();
+  if (!oud.length) return;
+  lijstOpslaan([]); toonGalerij();
+  snack(`${oud.length} designs gewist`, "Ongedaan maken", () => { lijstOpslaan(oud); toonGalerij(); });
+};
+$("#btnGal").onclick = () => { galLijst = "bewaard"; toonGalerij(); };
 $("#btnSave").onclick = () => {
   const g = galerij();
   const naam = (prompt("Naam van dit design", D.naam || `Design ${g.length + 1}`) || "").trim();
@@ -547,7 +578,7 @@ $("#btnSave").onclick = () => {
   D.naam = naam;
   g.unshift({ naam, t: Date.now(), D: clone(D) });
   localStorage.setItem(GALERIJ, JSON.stringify(g.slice(0, 200)));
-  toonGalerij();
+  galLijst = "bewaard"; toonGalerij();
   toast("Bewaard in Mijn designs", 1600);
 };
 $("#btnNew").onclick = () => {
@@ -561,10 +592,11 @@ $("#btnNew").onclick = () => {
 };
 $("#galGrid").addEventListener("click", (e) => {
   const del = e.target.closest("[data-del]");
-  const g = galerij();
+  const g = lijstData();
   if (del) {
-    const k = +del.dataset.del;
-    if (confirm(`"${g[k].naam}" verwijderen?`)) { g.splice(k, 1); localStorage.setItem(GALERIJ, JSON.stringify(g)); toonGalerij(); }
+    const k = +del.dataset.del, weg = g.splice(k, 1)[0];
+    lijstOpslaan(g); toonGalerij();
+    snack(`"${weg.naam}" gewist`, "Ongedaan maken", () => { const h = lijstData(); h.splice(k, 0, weg); lijstOpslaan(h); toonGalerij(); });
     return;
   }
   const op = e.target.closest("[data-open]");
@@ -633,11 +665,46 @@ window.fotoTap = (i) => tik(i);
 window.__fotoReady = () => alles();
 $$("#aanzichtSeg button").forEach((b) => (b.onclick = () => { S.aanzicht = b.dataset.a; alles(); }));
 
+// ---------- wissen ----------
+const kaleNagel = () => ({ c: "#F2D7CF", c2: "#FFFFFF", fx: "effen", fin: "glans", deco: [] });
+$("#btnWis").onclick = () => {
+  commit();
+  const keep = { shape: D.shape, length: D.length, skin: D.skin };
+  D = Object.assign(leeg(), keep, { nails: Array(10).fill(0).map(kaleNagel), naam: "" });
+  S.sel = "all"; S.focus = null; S.deco = null;
+  alles();
+  snack("Design gewist", "Ongedaan maken", herstel);
+};
+$("#wisNagel").onclick = () => {
+  if (S.focus == null) return;
+  commit();
+  D.nails[S.focus] = kaleNagel(); S.deco = null;
+  alles();
+  snack(`${nagelNaam(S.focus)} gewist`, "Ongedaan maken", herstel);
+};
+function wisVersieringen() {
+  const doel = doelen().filter((i) => D.nails[i].deco.length);
+  if (!doel.length) { toast("Geen versieringen om te wissen", 1500); return; }
+  commit();
+  let n = 0; doel.forEach((i) => { n += D.nails[i].deco.length; D.nails[i].deco = []; });
+  S.deco = null; alles();
+  snack(`${n} versiering${n === 1 ? "" : "en"} gewist`, "Ongedaan maken", herstel);
+}
+function wisEffect() {
+  const doel = doelen().filter((i) => D.nails[i].fx !== "effen");
+  if (!doel.length) { toast("Er staat geen effect op", 1500); return; }
+  commit();
+  doel.forEach((i) => { D.nails[i].fx = "effen"; });
+  alles();
+  snack("Effect gewist", "Ongedaan maken", herstel);
+}
+
 // ---------- generator + stappenplan ----------
 function doeGenereer() {
   commit();
   const g = genereer({ sfeer: S.sfeer, kleur: S.kw, niveau: S.niv });
   D.shape = g.shape; D.length = g.length; D.naam = g.naam; D.nails = g.nails;
+  try { const r = recent(); r.unshift({ naam: g.naam, t: Date.now(), D: clone(D) }); localStorage.setItem(RECENT, JSON.stringify(r.slice(0, 40))); } catch (e) {}
   S.sel = "all"; S.focus = null; S.deco = null; S.klaar = new Set();
   if (S.view === "hand") S.aanzicht = "toppen";
   alles();

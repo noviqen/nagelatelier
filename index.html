@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="globaldefs"></defs></svg>
@@ -24,6 +24,7 @@
     </button>
     <div class="brand">Nagel<em>atelier</em></div>
     <div class="acts">
+      <button class="ic" id="btnWis" aria-label="Wis design"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/><path d="M10.5 11v5M13.5 11v5"/></svg></button>
       <button class="ic" id="btnUndo" aria-label="Ongedaan maken"><svg viewBox="0 0 24 24"><path d="M9 7 4.5 11.5 9 16"/><path d="M5 11.5h9.5a5 5 0 0 1 0 10H12"/></svg></button>
       <button class="ic" id="btnRedo" aria-label="Opnieuw"><svg viewBox="0 0 24 24"><path d="m15 7 4.5 4.5L15 16"/><path d="M19 11.5H9.5a5 5 0 0 0 0 10H12"/></svg></button>
       <button class="ic" id="btnShare" aria-label="Delen"><svg viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="m7.5 8 4.5-4.5L16.5 8"/><path d="M6 12.5v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5"/></svg></button>
@@ -40,7 +41,7 @@
     <div class="focusbar" id="focusbar">
       <button class="pill back" id="focusBack"><svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>Terug</button>
       <div class="focustitle" id="focusTitle"></div>
-      <span></span>
+      <button class="pill wisnagel" id="wisNagel"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>Wis</button>
     </div>
     <button class="arrow left" id="prevNail" aria-label="Vorige nagel"><svg viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg></button>
     <button class="arrow right" id="nextNail" aria-label="Volgende nagel"><svg viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></button>
@@ -67,6 +68,7 @@
       <button class="btn primary" id="btnSave">Bewaar dit design</button>
       <button class="btn" id="btnNew">Nieuw design</button>
     </div>
+    <div class="galbar"><div class="seg small light" id="galSeg"><button data-lijst="bewaard" class="on">Bewaard</button><button data-lijst="recent">Recent gegenereerd</button></div><button class="linkbtn" id="galWisAlles">Wis alles</button></div>
     <div class="galgrid" id="galGrid"></div>
   </div>
 </div>
@@ -92,13 +94,14 @@
 </div>
 
 <div class="ghost" id="ghost"></div>
+<div class="snack" id="snack"><span></span><button></button></div>
 
 <script src="data.js?v=2"></script>
 <script src="render.js?v=3"></script>
-<script src="kunst.js?v=2"></script>
+<script src="kunst.js?v=3"></script>
 <script src="stappen.js?v=6"></script>
-<script src="generator.js?v=5"></script>
-<script src="app.js?v=9"></script>
+<script src="generator.js?v=7"></script>
+<script src="app.js?v=11"></script>
 <script src="handfoto.js?v=2"></script>
 </body>
 </html>
