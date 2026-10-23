@@ -151,7 +151,13 @@ function decoVoor(sfeer, niv, uit) {
 }
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function genereer({ sfeer = "verras", kleur = "vrij", niveau = 2 } = {}) {
+function genereer(opt = {}) {
+  // probeer tot het stappenplan echt binnen het gekozen niveau valt
+  let laatste;
+  for (let k = 0; k < 40; k++) { laatste = genereer1(opt); if (maakStappenplan(laatste).niveau <= (opt.niveau || 2)) return laatste; }
+  return laatste;
+}
+function genereer1({ sfeer = "verras", kleur = "vrij", niveau = 2 } = {}) {
   let fam = kleur;
   if (fam === "vrij") fam = kies(SFEER_KLEUR[sfeer] || Object.keys(FAMILIE));
   const F = FAMILIE[fam];
@@ -172,3 +178,130 @@ function genereer({ sfeer = "verras", kleur = "vrij", niveau = 2 } = {}) {
   const vijf = res.nagels;
   return { shape, length, naam: res.naam, nails: vijf.concat(JSON.parse(JSON.stringify(vijf))), stijl: stijl.id };
 }
+
+// ---------- thema-sets: elke nagel anders, samen één verhaal ----------
+SFEREN.splice(1, 0, ["speels", "Speels & dieren"], ["tropisch", "Tropisch & zee"], ["bloemen", "Bloemen"], ["grafisch", "Lijnen & grafisch"], ["print", "Dierenprint"]);
+Object.assign(SFEER_KLEUR, { speels: ["pastel", "roze", "blauw", "groen"], tropisch: ["blauw", "roze", "groen"], bloemen: ["blauw", "roze", "nude", "pastel"], grafisch: ["zwartwit", "roze", "blauw", "rood", "donker"], print: ["nude", "zwartwit", "roze", "donker"] });
+
+const NUDE = ["#F2D7CF", "#F6E3DC", "#EFD3C6"];
+const mengen = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]);
+const metV = (n, v, c3) => Object.assign(n, { v, ...(c3 ? { c3 } : {}) });
+const hoekPlek = (t, L, c, kant = kies([-1, 1])) => [dc(t, kant * 30, -L * 0.32, VERSIERING[t].maat * 1.05, c, kant * 20)];
+const tipPlek = (t, L, c) => [dc(t, kies([-8, 0, 8]), -L * 0.7, VERSIERING[t].maat * 0.9, c, kies([-15, 0, 15]))];
+// vijf nagels; duim (0) en middelvinger (2) vaak het 'rustpunt', ring (3) het pronkstuk
+const set5 = (lijst) => { const l = mengen(lijst); return [l[0], l[1], l[2], l[3], l[4]]; };
+
+STIJLEN.push(
+  { id: "tropisch", niveau: 3, sferen: ["tropisch", "zomer", "verras", "bloemen"],
+    maak: ({ fam, L }) => {
+      const zee = fam === "roze" ? "#F7B7C8" : fam === "groen" ? "#B7E4C7" : "#BDE0FE";
+      const bloem = fam === "roze" ? "#E85A8A" : fam === "groen" ? "#2D6A4F" : "#3FA7D6";
+      const basis = kies(NUDE);
+      const nagels = set5([
+        metV(nagel(basis, "zee", zee), 0, dark(zee, 0.4)),
+        nagel(basis, "golffrench", zee, [...decoOp("hibiscus", L, bloem, "midden")]),
+        nagel(basis, "zee", zee, [dc("zeester", -10, -L * 0.62, 26, "goud", -12), dc("schelp", 12, -L * 0.52, 22, "goud", 10), dc("bolletje", 2, -L * 0.74, 8, "goud")]),
+        nagel(basis, "effen", "#fff", [dc("bloem3d", 0, -L * 0.45, 62, bloem, kies([0, 15, 30])), dc("bolletje", 4, -L * 0.45, 6, "goud")]),
+        nagel(basis, "french", zee, hoekPlek("hibiscus", L, bloem)),
+      ]);
+      return { naam: fam === "roze" ? "Tropische roze bloemen" : "Tropische zee", nagels };
+    } },
+  { id: "bloemen3d", niveau: 3, sferen: ["bloemen", "trendy", "bruiloft", "zomer", "verras"],
+    maak: ({ fam, L }) => {
+      const bc = fam === "roze" ? "#E85A8A" : fam === "pastel" ? kies(["#B392D9", "#F28DAA"]) : fam === "nude" ? "#B07A63" : "#3A6EA5";
+      const basis = kies(["#E7C2B0", "#EFD3C6", "#F2D7CF"]), tip = "#FFFFFF";
+      const plek = [
+        () => [dc("bloem3d", 0, -L * 0.42, 66, bc, kies([0, 20])) ],
+        () => [dc("bloem3d", kies([-1, 1]) * 26, -L * 0.62, 58, bc, 25)],
+        () => [dc("bloem3d", kies([-1, 1]) * 30, -L * 0.36, 60, bc, -15)],
+        () => [dc("bloem3d", 0, -L * 0.3, 54, bc, 10)],
+        () => [dc("bloem3d", kies([-1, 1]) * 22, -L * 0.48, 64, bc, 35)],
+      ];
+      return { naam: `3D-bloemen in ${kn(bc)}`, nagels: set5(plek.map((p) => nagel(basis, "french", tip, p()))) };
+    } },
+  { id: "dierentuin", niveau: 3, sferen: ["speels", "verras", "zomer"],
+    maak: ({ fam, L }) => {
+      const pal = mengen([...(FAMILIE[fam] || FAMILIE.pastel).hoofd]).filter((c) => lum(c) > 0.35);
+      const dieren = mengen(["beer", "kat", "panda", "leeuw", "kikker", "konijn"]).slice(0, 3);
+      const bg = (i) => pal[i % pal.length] || "#FAD4DC";
+      const n = [
+        nagel(bg(0), "effen", "#fff", decoOp(dieren[0], L, VERSIERING[dieren[0]].kleur, "groot")),
+        metV(nagel(bg(1), "strepen", "#FFFFFF"), 1),
+        nagel(bg(2), "effen", "#fff", decoOp(dieren[1], L, VERSIERING[dieren[1]].kleur, "groot")),
+        nagel(bg(3), "effen", "#fff", decoOp("stip", L, "#FFFFFF", "drie")),
+        nagel(bg(4), "effen", "#fff", decoOp(dieren[2], L, VERSIERING[dieren[2]].kleur, "groot")),
+      ];
+      return { naam: "Dierentuintje", nagels: n };
+    } },
+  { id: "regenboogset", niveau: 3, sferen: ["speels", "zomer", "verras", "grafisch"],
+    maak: ({ L }) => {
+      const fel = kans(0.35) ? 1 : 0;
+      const pal = REGENBOOG[fel ? "fel" : "pastel"];
+      return { naam: fel ? "Felle regenboog" : "Pastel regenboog", nagels: set5([
+        metV(nagel("#FFFFFF", "regenboog"), fel),
+        nagel("#BDE0FE", "effen", "#fff", decoOp("wolkje", L, "#FFFFFF", "groot")),
+        metV(nagel("#FFFFFF", "strepen", pal[0]), 2, pal[4]),
+        nagel(pal[kies([2, 4, 5])]),
+        nagel("#F4EEE9", "milky", "#fff", [dc("stip", -12, -L * 0.3, 12, pal[0]), dc("stip", 6, -L * 0.45, 12, pal[2]), dc("stip", -4, -L * 0.6, 12, pal[4])]),
+      ]) };
+    } },
+  { id: "printmix", niveau: 2, sferen: ["print", "trendy", "feest", "verras", "herfst"],
+    maak: ({ fam }) => {
+      const zw = fam === "zwartwit";
+      const roze = fam === "roze";
+      const leo = roze ? ["#F7B7C8", "#E85A8A"] : ["#E7C2B0", "#B5652B"];
+      return { naam: zw ? "Zebra & zwart-wit" : roze ? "Roze luipaard" : "Luipaard & nude", nagels: set5([
+        nagel(leo[0], "luipaard", leo[1]),
+        zw ? nagel("#FFFFFF", "zebra", "#141214") : nagel(leo[0], "luipaard", leo[1]),
+        nagel(zw ? "#141214" : roze ? "#E85A8A" : "#B07A63"),
+        nagel("#F2D7CF", "vfrench", zw ? "#141214" : leo[1]),
+        zw ? nagel("#FFFFFF", "zebra", "#141214") : nagel("#141214", "effen", "#fff", decoOp("steentje", nailLen("almond", "middel"), "#FFFFFF", "riem")),
+      ]) };
+    } },
+  { id: "grafisch", niveau: 2, sferen: ["grafisch", "trendy", "verras", "klassiek"],
+    maak: ({ fam, h, a, niv }) => {
+      const k1 = fam === "zwartwit" ? "#141214" : h, k2 = fam === "zwartwit" ? "#FFFFFF" : (lum(h) > 0.5 ? "#FFFFFF" : a);
+      return { naam: "Lijnenspel", nagels: set5([
+        metV(nagel(k2, "strepen", k1), kies([0, 1])),
+        niv >= 3 ? metV(nagel(k2, "ruit", k1), kies([0, 1])) : nagel(k2, "vfrench", k1),
+        metV(nagel(k2, "swirl", k1), 0, fam === "zwartwit" ? "#9A938C" : light(k1, 0.4)),
+        nagel(k1),
+        metV(nagel(k2, "golffrench", k1), 0, light(k1, 0.35)),
+      ]) };
+    } },
+  { id: "fruit", niveau: 2, sferen: ["speels", "zomer", "verras", "romantisch"],
+    maak: ({ L, niv }) => ({ naam: "Fruitpicknick", nagels: set5([
+      nagel("#FFFFFF", "effen", "#fff", decoOp("kers", L, "#C8102E", "groot")),
+      nagel("#FAD4DC", "effen", "#fff", decoOp("aardbei", L, "#E63946", "groot")),
+      niv >= 3 ? metV(nagel("#FFFFFF", "ruit", "#E63946"), 0) : metV(nagel("#FFFFFF", "strepen", "#E63946"), 1),
+      nagel("#C8102E"),
+      nagel("#FAD4DC", "effen", "#fff", decoOp("stip", L, "#FFFFFF", "drie")),
+    ]) }) },
+  { id: "lentebeestjes", niveau: 3, sferen: ["speels", "zomer", "bloemen", "verras"],
+    maak: ({ L }) => ({ naam: "Lentebeestjes", nagels: set5([
+      nagel("#B7E4C7", "effen", "#fff", decoOp("lieveheer", L, "#E63946", "groot")),
+      nagel("#FFF1A8", "effen", "#fff", decoOp("bij", L, "#F6C945", "groot")),
+      nagel("#F4EEE9", "milky", "#fff", decoOp("madelief", L, "#FFFFFF", "groot")),
+      nagel("#BDE0FE", "effen", "#fff", decoOp("bloem", L, "#FFFFFF", "drie")),
+      nagel("#B7E4C7"),
+    ]) }) },
+  { id: "zeemans", niveau: 2, sferen: ["tropisch", "zomer", "klassiek", "verras"],
+    maak: ({ L, niv }) => ({ naam: "Aan zee", nagels: set5([
+      metV(nagel("#FFFFFF", "strepen", "#1D2B4F"), 2),
+      nagel("#1D2B4F", "effen", "#fff", [dc("zeester", 0, -L * 0.45, 30, "goud", 10)]),
+      niv >= 3 ? metV(nagel("#F2D7CF", "zee", "#BDE0FE"), 0, "#3A6EA5") : nagel("#BDE0FE"),
+      nagel("#FFFFFF", "effen", "#fff", [dc("schelp", 0, -L * 0.42, 30, "goud")]),
+      nagel("#1D2B4F"),
+    ]) }) },
+  { id: "charms", niveau: 1, sferen: ["feest", "trendy", "bruiloft", "tropisch", "verras"],
+    maak: ({ h, L }) => {
+      const basis = kies([h, "#F4EEE9", "#F2D7CF"]);
+      return { naam: "Gouden bedeltjes", nagels: set5([
+        nagel(basis), nagel(basis, "effen", "#fff", [dc(kies(["zeester", "schelp"]), 0, -L * 0.42, 28, "goud", 8)]),
+        nagel(basis, "chroom"), nagel(basis, "effen", "#fff", [dc("bolletje", -8, -24, 8, "goud"), dc("bolletje", 0, -36, 9, "goud"), dc("bolletje", 8, -24, 8, "goud")]),
+        nagel(basis),
+      ]) };
+    } },
+);
+// regenboog/strepen tonen in de keuzes voor bestaande sferen
+["zomer", "trendy"].forEach(() => {});

@@ -172,6 +172,7 @@ function techSVG(n, L, id, seed, defs) {
       s = full(`url(#${id}g)`);
       break;
     default:
+      if (typeof TECH_EXTRA !== "undefined" && TECH_EXTRA[n.fx]) return TECH_EXTRA[n.fx]({ n, c, c2, L, id, R, defs, full, top, H });
       s = full(c);
   }
   return s;
@@ -284,6 +285,7 @@ function decoBody(d, id, defs) {
       return `<path d="${s}" stroke="${F}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
     }
   }
+  if (typeof DECO_EXTRA !== "undefined" && DECO_EXTRA[d.t]) return DECO_EXTRA[d.t]({ d, F, hx, donker, id, defs });
   return "";
 }
 

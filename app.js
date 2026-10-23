@@ -11,14 +11,14 @@ const leeg = () => ({ shape: "almond", length: "middel", skin: 1, naam: "",
   nails: Array(10).fill(0).map(() => ({ c: "#F2C9C4", c2: "#FFFFFF", fx: "effen", fin: "glans", deco: [] })) });
 
 let D = leeg();
-const S = { sfeer: "verras", kw: "vrij", niv: 2, aanzicht: "boven", view: "hand", hand: "R", sel: "all", focus: null, tab: "gen", slot: 1, deco: null, thema: "Alles" };
+const S = { sfeer: "verras", kw: "vrij", niv: 2, aanzicht: "toppen", view: "hand", hand: "R", sel: "all", focus: null, tab: "gen", slot: 1, deco: null, thema: "Alles" };
 let undo = [], redo = [];
 
 try {
   const opg = JSON.parse(localStorage.getItem(OPSLAG) || "null");
   if (opg && opg.D && Array.isArray(opg.D.nails) && opg.D.nails.length === 10) {
     D = opg.D;
-    Object.assign(S, { view: opg.view || "hand", hand: opg.hand || "R", tab: ["gen", "stappen", "vorm", "kleur", "effect", "deco"].includes(opg.tab) ? opg.tab : "gen", aanzicht: opg.aanzicht || "boven", sfeer: opg.sfeer || "verras", kw: opg.kw || "vrij", niv: opg.niv || 2 });
+    Object.assign(S, { view: opg.view || "hand", hand: opg.hand || "R", tab: ["gen", "stappen", "vorm", "kleur", "effect", "deco"].includes(opg.tab) ? opg.tab : "gen", aanzicht: opg.aanzicht || "toppen", sfeer: opg.sfeer || "verras", kw: opg.kw || "vrij", niv: opg.niv || 2 });
   }
 } catch (e) { /* begin leeg */ }
 
@@ -45,7 +45,7 @@ function stap(van, naar) {
 const doelen = () => (S.focus != null ? [S.focus] : S.sel === "all" ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] : [S.sel]);
 const eerste = () => D.nails[doelen()[0]];
 const nagelNaam = (i) => VINGERNAAM[i % 5] + (i < 5 ? " rechts" : " links");
-const kleurNaam = (hex) => KLEURNAAM[String(hex).toUpperCase()] || "Eigen kleur";
+const kleurNaam = (hex) => { const n = kn(hex); return n.charAt(0).toUpperCase() + n.slice(1); };
 
 // ---------- toast ----------
 let toastT;
@@ -199,7 +199,7 @@ function paneel() {
   } else if (S.tab === "stappen") {
     const p = maakStappenplan(D);
     h = `<div class="pane"><div class="plancard"><div class="pcset">${miniSet(D, 92)}</div><div class="pctext"><b>${D.naam || "Mijn design"}</b><small>${p.niveauNaam} · ± ${p.minuten} min · ${p.stappen.length} stappen</small></div></div>
-      <ol class="planpeek">${p.stappen.slice(3, 6).map((st) => `<li>${st.t}</li>`).join("")}<li class="meer">… en nog ${Math.max(0, p.stappen.length - 6) + 3} stappen</li></ol>
+      <ol class="planpeek">${p.stappen.slice(4, 7).map((st) => `<li>${st.t}</li>`).join("")}<li class="meer">… en nog ${Math.max(0, p.stappen.length - 3)} stappen</li></ol>
       <div class="row"><button class="genbtn wide" data-plan="1">Open stappenplan · ${p.spullen.length} spullen</button></div></div>`;
   } else if (S.tab === "idee") {
     const lijst = IDEEEN.map((d, k) => [d, k]).filter(([d]) => S.thema === "Alles" || d.thema === S.thema);
@@ -235,6 +235,14 @@ function metEffect(n, fx) {
     case "marmer": m.c2 = isLicht(c) ? "#8A8380" : c; m.c = "#FAF7F4"; break;
     case "schildpad": m.c = "#B8732E"; m.c2 = "#3A1C0D"; break;
     case "milky": m.c = "#F4EEE9"; break;
+    case "strepen": case "ruit": m.c2 = isLicht(c) ? "#E85A8A" : "#FFFFFF"; m.v = 0; break;
+    case "regenboog": m.c = "#FFFFFF"; m.v = 0; break;
+    case "swirl": m.c2 = isLicht(c) ? "#3A6EA5" : "#FFFFFF"; break;
+    case "golffrench": m.c2 = isLicht(c) ? "#7FB3E6" : c; m.c = "#F2D7CF"; break;
+    case "vfrench": m.c2 = isLicht(c) ? "#141214" : c; m.c = "#F2D7CF"; break;
+    case "luipaard": m.c = isLicht(c) ? c : "#E7C2B0"; m.c2 = "#B5652B"; break;
+    case "zebra": m.c = "#FFFFFF"; m.c2 = "#141214"; break;
+    case "zee": m.c = "#F2D7CF"; m.c2 = "#BDE0FE"; m.c3 = "#3A6EA5"; break;
   }
   return m;
 }
@@ -631,6 +639,7 @@ function doeGenereer() {
   const g = genereer({ sfeer: S.sfeer, kleur: S.kw, niveau: S.niv });
   D.shape = g.shape; D.length = g.length; D.naam = g.naam; D.nails = g.nails;
   S.sel = "all"; S.focus = null; S.deco = null; S.klaar = new Set();
+  if (S.view === "hand") S.aanzicht = "toppen";
   alles();
   const p = maakStappenplan(D);
   toast(`${g.naam} · ${p.niveauNaam} · ± ${p.minuten} min`, 2600);
@@ -644,7 +653,7 @@ function toonPlan() {
     if (st.groep && st.groep !== groep) { groep = st.groep; kop = `<li class="pgroep">${st.groep}</li>`; }
     else if (!st.groep && groep) { groep = null; }
     nr++;
-    return kop + `<li class="pstap ${S.klaar.has(k) ? "klaar" : ""}" data-stap="${k}"><span class="pnr">${nr}</span><div><b>${st.t}</b><p>${st.x}</p>${st.lamp ? `<span class="lamp">Uitharden · ${LAMP}*</span>` : ""}</div></li>`;
+    return kop + `<li class="pstap ${S.klaar.has(k) ? "klaar" : ""}" data-stap="${k}"><span class="pnr">${nr}</span><div><b>${st.t}</b><p>${st.x}</p>${st.lamp ? `<span class="lamp">Uitharden*</span>` : ""}</div></li>`;
   }).join("");
   $("#planBody").innerHTML = `
     <div class="phero">${miniSet(D, 150)}<div><h3>${D.naam || "Mijn design"}</h3><div class="pmeta"><span>${p.niveauNaam}</span><span>± ${p.minuten} min</span><span>${(VORMEN.find((v) => v[0] === D.shape) || [, ""])[1]} · ${D.length}</span></div></div></div>
@@ -652,7 +661,7 @@ function toonPlan() {
     <ul class="pspul">${p.spullen.map((x) => `<li><label><input type="checkbox"><span>${x}</span></label></li>`).join("")}</ul>
     <h4>Stappen <small>tik een stap af als hij klaar is</small></h4>
     <ol class="pstappen">${stappen}</ol>
-    <p class="pnoot">* Uithardtijd verschilt per merk en lamp: houd altijd de gebruiksaanwijzing van je eigen product aan. Een UV-lamp heeft meestal langer nodig dan een LED-lamp.</p>
+    <p class="pnoot">* Hard elke laag apart uit met een lamp die past bij je gel, met de tijd, laagdikte en handpositie die het product voorschrijft (veel LED-gellak 30–60 sec, UV meestal langer; let ook op dat de duimen goed onder het licht liggen). Een hard oppervlak betekent niet altijd dat de laag helemaal is uitgehard.</p>
     <h4>Bronnen</h4>
     <ul class="pbron">${p.bronnen.map(([naam, url]) => `<li><a href="${url}" target="_blank" rel="noopener">${naam}</a></li>`).join("")}</ul>`;
   openSheet("#planSheet");
