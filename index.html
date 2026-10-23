@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="globaldefs"></defs></svg>
@@ -52,11 +52,9 @@
   <section id="panel">
     <div id="panelBody"></div>
     <nav id="tabs">
-      <button data-tab="vorm"><svg viewBox="0 0 24 24"><path d="M8 20.5c-1.7 0-2.5-1.2-2.5-3V9.5C5.5 5.6 8.4 3 12 3s6.5 2.6 6.5 6.5v8c0 1.8-.8 3-2.5 3Z"/></svg><span>Vorm</span></button>
-      <button data-tab="kleur"><svg viewBox="0 0 24 24"><path d="M12 3.2c3.6 4.3 6 7.6 6 10.6a6 6 0 0 1-12 0c0-3 2.4-6.3 6-10.6Z"/></svg><span>Kleur</span></button>
-      <button data-tab="effect"><svg viewBox="0 0 24 24"><path d="M12 3c.7 3.9 2.1 5.3 6 6-3.9.7-5.3 2.1-6 6-.7-3.9-2.1-5.3-6-6 3.9-.7 5.3-2.1 6-6Z"/><path d="M18.5 15.5c.3 1.6.9 2.2 2.5 2.5-1.6.3-2.2.9-2.5 2.5-.3-1.6-.9-2.2-2.5-2.5 1.6-.3 2.2-.9 2.5-2.5Z"/></svg><span>Effect</span></button>
-      <button data-tab="deco"><svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10Z"/></svg><span>Versiering</span></button>
-      <button data-tab="idee"><svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/></svg><span>Ideeën</span></button>
+      <button data-tab="gen"><svg viewBox="0 0 24 24"><path d="M5 19 15.5 8.5"/><path d="m14 7 3 3"/><path d="M18 3.5v3M16.5 5h3M20 11v2M19 12h2M10 3v2M9 4h2"/></svg><span>Genereer</span></button>
+      <button data-tab="stappen"><svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4"/><circle cx="4.5" cy="12" r="1.4"/><circle cx="4.5" cy="18" r="1.4"/></svg><span>Stappenplan</span></button>
+      <button data-tab="aanpassen"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>Aanpassen</span></button>
     </nav>
   </section>
 </div>
@@ -70,6 +68,14 @@
       <button class="btn" id="btnNew">Nieuw design</button>
     </div>
     <div class="galgrid" id="galGrid"></div>
+  </div>
+</div>
+
+<!-- Stappenplan -->
+<div class="sheet" id="planSheet" aria-hidden="true">
+  <div class="sheetcard plan">
+    <div class="sheethead"><h2>Stappenplan</h2><button class="ic" data-close aria-label="Sluiten"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="planbody" id="planBody"></div>
   </div>
 </div>
 
@@ -89,7 +95,9 @@
 
 <script src="data.js?v=2"></script>
 <script src="render.js?v=2"></script>
-<script src="app.js?v=4"></script>
+<script src="stappen.js?v=2"></script>
+<script src="generator.js?v=2"></script>
+<script src="app.js?v=6"></script>
 <script src="handfoto.js?v=2"></script>
 </body>
 </html>

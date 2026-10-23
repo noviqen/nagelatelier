@@ -11,7 +11,7 @@
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif;
   --st: env(safe-area-inset-top, 0px);
   --sb: env(safe-area-inset-bottom, 0px);
-  --panel-h: 214px;
+  --panel-h: 232px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); overflow: hidden; overscroll-behavior: none; }
@@ -87,7 +87,7 @@ svg { display: block; }
 /* ---------- paneel ---------- */
 #panel { flex: none; background: var(--bg); padding-bottom: var(--sb); z-index: 2; }
 #panelBody { height: var(--panel-h); overflow: hidden; position: relative; }
-#tabs { display: grid; grid-template-columns: repeat(5, 1fr); height: 56px; border-top: 1px solid var(--line); }
+#tabs { display: grid; grid-template-columns: repeat(3, 1fr); height: 56px; border-top: 1px solid var(--line); }
 #tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--muted); font-size: 10.5px; font-weight: 600; letter-spacing: .2px; transition: color .2s; }
 #tabs svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 #tabs button.on { color: var(--accent); }
@@ -196,3 +196,53 @@ svg { display: block; }
   #tabs { border-top: 0; margin: 0 16px 6px; }
   .pane { gap: 14px; }
 }
+
+/* ---------- generator ---------- */
+.pane.gen { gap: 11px; padding-top: 14px; }
+.chip.kw { display: inline-flex; align-items: center; gap: 7px; padding-left: 9px; }
+.chip.kw i { width: 15px; height: 15px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+.chip.kw.on i { box-shadow: 0 0 0 2px #fff; }
+.genrow { justify-content: center; margin-top: 2px; }
+.seg.niv { width: 100%; }
+.seg.niv button { flex: 1; }
+.genbtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 22px; border-radius: 15px;
+  background: linear-gradient(135deg, #2B2026, #5A3A45); color: #fff; font-size: 15.5px; font-weight: 600; box-shadow: 0 6px 16px rgba(90, 40, 55, .25); }
+.genbtn svg { width: 19px; height: 19px; fill: #F6D9A8; stroke: none; }
+.genbtn:active { transform: scale(.97); }
+.genbtn.wide { width: 100%; }
+.subrow { justify-content: center; }
+.seg.sub button { padding: 6px 11px; }
+
+/* stappenplan in paneel */
+.plancard { display: flex; align-items: center; gap: 12px; margin: 0 16px; padding: 8px 12px; border-radius: 16px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); }
+.pctext { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pctext b { font-family: var(--serif); font-size: 16.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pctext small { color: var(--muted); font-size: 12px; font-weight: 500; }
+.planpeek { margin: 0 16px 0 34px; padding: 0; font-size: 13px; color: var(--ink2); line-height: 1.55; }
+.planpeek .meer { list-style: none; margin-left: -18px; color: var(--muted); }
+
+/* stappenplan-sheet */
+.sheetcard.plan { max-width: 640px; height: calc(100% - var(--st) - 24px); }
+.planbody { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; -webkit-user-select: text; user-select: text; }
+.phero { display: flex; align-items: center; gap: 14px; padding: 6px 0 4px; }
+.phero h3 { margin: 0 0 6px; font-family: var(--serif); font-size: 21px; line-height: 1.2; }
+.pmeta { display: flex; flex-wrap: wrap; gap: 6px; }
+.pmeta span { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 4px 9px; border-radius: 9px; }
+.planbody h4 { margin: 20px 0 8px; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+.planbody h4 small { text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: 6px; }
+.pspul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.pspul label { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; line-height: 1.35; padding: 9px 10px; border-radius: 12px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); }
+.pspul input { accent-color: var(--accent); margin: 1px 0 0; flex: none; }
+.pstappen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pgroep { font-family: var(--serif); font-size: 16px; font-weight: 600; margin: 8px 0 0 2px; }
+.pstap { display: flex; gap: 12px; padding: 12px 13px; border-radius: 16px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; transition: opacity .2s; }
+.pnr { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+.pstap b { display: block; font-size: 15px; margin: 2px 0 3px; }
+.pstap p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink2); }
+.lamp { display: inline-block; margin-top: 7px; font-size: 12px; font-weight: 600; color: #8A5A12; background: #FBEFD8; padding: 4px 9px; border-radius: 9px; }
+.pstap.klaar { opacity: .45; }
+.pstap.klaar .pnr { background: #4C9A6A; font-size: 0; }
+.pstap.klaar .pnr::after { content: "✓"; font-size: 14px; }
+.pnoot { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 14px 2px 0; }
+.pbron { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.7; }
+.pbron a { color: var(--accent); }

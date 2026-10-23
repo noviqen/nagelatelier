@@ -11,14 +11,14 @@ const leeg = () => ({ shape: "almond", length: "middel", skin: 1, naam: "",
   nails: Array(10).fill(0).map(() => ({ c: "#F2C9C4", c2: "#FFFFFF", fx: "effen", fin: "glans", deco: [] })) });
 
 let D = leeg();
-const S = { aanzicht: "boven", view: "hand", hand: "R", sel: "all", focus: null, tab: "kleur", slot: 1, deco: null, thema: "Alles" };
+const S = { sfeer: "verras", kw: "vrij", niv: 2, aanzicht: "boven", view: "hand", hand: "R", sel: "all", focus: null, tab: "gen", slot: 1, deco: null, thema: "Alles" };
 let undo = [], redo = [];
 
 try {
   const opg = JSON.parse(localStorage.getItem(OPSLAG) || "null");
   if (opg && opg.D && Array.isArray(opg.D.nails) && opg.D.nails.length === 10) {
     D = opg.D;
-    Object.assign(S, { view: opg.view || "hand", hand: opg.hand || "R", tab: opg.tab || "kleur", aanzicht: opg.aanzicht || "boven" });
+    Object.assign(S, { view: opg.view || "hand", hand: opg.hand || "R", tab: ["gen", "stappen", "vorm", "kleur", "effect", "deco"].includes(opg.tab) ? opg.tab : "gen", aanzicht: opg.aanzicht || "boven", sfeer: opg.sfeer || "verras", kw: opg.kw || "vrij", niv: opg.niv || 2 });
   }
 } catch (e) { /* begin leeg */ }
 
@@ -26,7 +26,7 @@ let saveT;
 function bewaar() {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
-    try { localStorage.setItem(OPSLAG, JSON.stringify({ D, view: S.view, hand: S.hand, tab: S.tab, aanzicht: S.aanzicht })); } catch (e) {}
+    try { localStorage.setItem(OPSLAG, JSON.stringify({ D, view: S.view, hand: S.hand, tab: S.tab, aanzicht: S.aanzicht, sfeer: S.sfeer, kw: S.kw, niv: S.niv })); } catch (e) {}
   }, 250);
 }
 function commit() {
@@ -148,7 +148,8 @@ function decoSel(d) {
 
 // ---------- paneel ----------
 function paneel() {
-  $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === S.tab));
+  const AANPAS = ["vorm", "kleur", "effect", "deco"];
+  $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === S.tab || (b.dataset.tab === "aanpassen" && AANPAS.includes(S.tab))));
   const pb = $("#panelBody");
   let h = "";
   const n = eerste();
@@ -189,18 +190,35 @@ function paneel() {
       h = `<div class="pane"><div class="phead"><div class="hint">Tik om toe te voegen, of sleep omhoog naar een nagel</div></div>
         <div class="tray" id="tray">${VERSIERINGEN.map((v) => `<button class="tile" data-add="${v.id}" aria-label="${v.naam}">${miniDeco(v.id, 40)}</button>`).join("")}</div></div>`;
     }
+  } else if (S.tab === "gen") {
+    h = `<div class="pane gen">
+      <div class="chips">${SFEREN.map(([id, naam]) => `<button class="chip ${S.sfeer === id ? "on" : ""}" data-sfeer="${id}">${naam}</button>`).join("")}</div>
+      <div class="chips">${KLEURWENS.map(([id, naam, bg]) => `<button class="chip kw ${S.kw === id ? "on" : ""}" data-kw="${id}"><i style="background:${bg}"></i>${naam}</button>`).join("")}</div>
+      <div class="row genrow"><div class="seg small light niv">${NIVEAUS.map(([n, naam]) => `<button data-niv="${n}" class="${S.niv === n ? "on" : ""}">${naam}</button>`).join("")}</div></div>
+      <div class="row"><button class="genbtn wide" data-gen="1"><svg viewBox="0 0 24 24"><path d="M12 3c.7 3.9 2.1 5.3 6 6-3.9.7-5.3 2.1-6 6-.7-3.9-2.1-5.3-6-6 3.9-.7 5.3-2.1 6-6Z"/></svg>Genereer design</button></div></div>`;
+  } else if (S.tab === "stappen") {
+    const p = maakStappenplan(D);
+    h = `<div class="pane"><div class="plancard"><div class="pcset">${miniSet(D, 92)}</div><div class="pctext"><b>${D.naam || "Mijn design"}</b><small>${p.niveauNaam} · ± ${p.minuten} min · ${p.stappen.length} stappen</small></div></div>
+      <ol class="planpeek">${p.stappen.slice(3, 6).map((st) => `<li>${st.t}</li>`).join("")}<li class="meer">… en nog ${Math.max(0, p.stappen.length - 6) + 3} stappen</li></ol>
+      <div class="row"><button class="genbtn wide" data-plan="1">Open stappenplan · ${p.spullen.length} spullen</button></div></div>`;
   } else if (S.tab === "idee") {
     const lijst = IDEEEN.map((d, k) => [d, k]).filter(([d]) => S.thema === "Alles" || d.thema === S.thema);
     h = `<div class="pane"><div class="chips">${THEMAS.map((t) => `<button class="chip ${S.thema === t ? "on" : ""}" data-thema="${t}">${t}</button>`).join("")}</div>
       <div class="hs" id="ideas">${lijst.map(([d, k]) => `<button class="idea" data-idee="${k}">${miniSet({ shape: d.vorm, length: d.lengte, nails: d.nagels }, 140)}<b>${d.naam}</b><small>${d.thema}</small></button>`).join("")}</div></div>`;
   }
+  if (AANPAS.includes(S.tab)) {
+    const sub = `<div class="row subrow"><div class="seg small light sub">${[["vorm", "Vorm"], ["kleur", "Kleur"], ["effect", "Effect"], ["deco", "Versiering"]].map(([id, naam]) => `<button data-sub="${id}" class="${S.tab === id ? "on" : ""}">${naam}</button>`).join("")}</div></div>`;
+    h = h.replace('<div class="pane">', '<div class="pane">' + sub);
+  }
   pb.innerHTML = h;
+  // gekozen chips in beeld houden
+  $$(".chips", pb).forEach((rij) => { const on = $(".chip.on", rij); if (on) rij.scrollLeft = Math.max(0, on.offsetLeft - rij.clientWidth / 2 + on.offsetWidth / 2); });
 }
 function sw(c, huidig) {
   return `<button class="swatch ${String(huidig).toUpperCase() === c.toUpperCase() ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="${kleurNaam(c)}"></button>`;
 }
 
-function alles() { tekenNu(); paneel(); }
+function alles() { if (["vorm", "kleur", "effect", "deco"].includes(S.tab)) S.laatsteAanpas = S.tab; tekenNu(); paneel(); }
 
 // ---------- effect toepassen (met passende kleuren) ----------
 const isLicht = (c) => lum(c) > 0.62;
@@ -240,6 +258,12 @@ $("#panelBody").addEventListener("click", (e) => {
   }
   else if (ds.fin) { commit(); doelen().forEach((i) => (D.nails[i].fin = ds.fin)); alles(); }
   else if (ds.thema) { S.thema = ds.thema; paneel(); }
+  else if (ds.sub) { S.tab = ds.sub; if (S.tab !== "deco") S.deco = null; alles(); }
+  else if (ds.sfeer) { S.sfeer = ds.sfeer; paneel(); bewaar(); }
+  else if (ds.kw) { S.kw = ds.kw; paneel(); bewaar(); }
+  else if (ds.niv) { S.niv = +ds.niv; paneel(); bewaar(); }
+  else if (ds.gen) doeGenereer();
+  else if (ds.plan) toonPlan();
   else if (ds.idee) laadIdee(+ds.idee);
   else if (ds.add && !trayDrag.used) voegToe(ds.add);
   else if (ds.dc) decoActie("kleur", ds.dc);
@@ -439,7 +463,7 @@ $("#selPill").onclick = () => { S.sel = "all"; alles(); };
 $("#handSw").onclick = () => { S.hand = S.hand === "R" ? "L" : "R"; if (S.sel !== "all") S.sel = "all"; alles(); };
 $$("#viewSeg button").forEach((b) => (b.onclick = () => { S.view = b.dataset.v; alles(); }));
 $$("#tabs button").forEach((b) => (b.onclick = () => {
-  S.tab = b.dataset.tab;
+  S.tab = b.dataset.tab === "aanpassen" ? (["vorm", "kleur", "effect", "deco"].includes(S.laatsteAanpas) ? S.laatsteAanpas : "kleur") : b.dataset.tab;
   if (S.tab !== "deco") S.deco = null;
   alles();
 }));
@@ -600,6 +624,47 @@ $("#btnDoShare").onclick = async () => {
 window.fotoTap = (i) => tik(i);
 window.__fotoReady = () => alles();
 $$("#aanzichtSeg button").forEach((b) => (b.onclick = () => { S.aanzicht = b.dataset.a; alles(); }));
+
+// ---------- generator + stappenplan ----------
+function doeGenereer() {
+  commit();
+  const g = genereer({ sfeer: S.sfeer, kleur: S.kw, niveau: S.niv });
+  D.shape = g.shape; D.length = g.length; D.naam = g.naam; D.nails = g.nails;
+  S.sel = "all"; S.focus = null; S.deco = null; S.klaar = new Set();
+  alles();
+  const p = maakStappenplan(D);
+  toast(`${g.naam} · ${p.niveauNaam} · ± ${p.minuten} min`, 2600);
+}
+function toonPlan() {
+  const p = maakStappenplan(D);
+  S.klaar = S.klaar || new Set();
+  let groep = null, nr = 0;
+  const stappen = p.stappen.map((st, k) => {
+    let kop = "";
+    if (st.groep && st.groep !== groep) { groep = st.groep; kop = `<li class="pgroep">${st.groep}</li>`; }
+    else if (!st.groep && groep) { groep = null; }
+    nr++;
+    return kop + `<li class="pstap ${S.klaar.has(k) ? "klaar" : ""}" data-stap="${k}"><span class="pnr">${nr}</span><div><b>${st.t}</b><p>${st.x}</p>${st.lamp ? `<span class="lamp">Uitharden · ${LAMP}*</span>` : ""}</div></li>`;
+  }).join("");
+  $("#planBody").innerHTML = `
+    <div class="phero">${miniSet(D, 150)}<div><h3>${D.naam || "Mijn design"}</h3><div class="pmeta"><span>${p.niveauNaam}</span><span>± ${p.minuten} min</span><span>${(VORMEN.find((v) => v[0] === D.shape) || [, ""])[1]} · ${D.length}</span></div></div></div>
+    <h4>Wat heb je nodig</h4>
+    <ul class="pspul">${p.spullen.map((x) => `<li><label><input type="checkbox"><span>${x}</span></label></li>`).join("")}</ul>
+    <h4>Stappen <small>tik een stap af als hij klaar is</small></h4>
+    <ol class="pstappen">${stappen}</ol>
+    <p class="pnoot">* Uithardtijd verschilt per merk en lamp: houd altijd de gebruiksaanwijzing van je eigen product aan. Een UV-lamp heeft meestal langer nodig dan een LED-lamp.</p>
+    <h4>Bronnen</h4>
+    <ul class="pbron">${p.bronnen.map(([naam, url]) => `<li><a href="${url}" target="_blank" rel="noopener">${naam}</a></li>`).join("")}</ul>`;
+  openSheet("#planSheet");
+}
+$("#planBody").addEventListener("click", (e) => {
+  const li = e.target.closest("[data-stap]");
+  if (!li) return;
+  const k = +li.dataset.stap;
+  S.klaar = S.klaar || new Set();
+  S.klaar.has(k) ? S.klaar.delete(k) : S.klaar.add(k);
+  li.classList.toggle("klaar");
+});
 
 // ---------- start ----------
 window.addEventListener("resize", () => teken());
