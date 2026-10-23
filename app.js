@@ -81,6 +81,8 @@ function teken() {
 function tekenNu() {
   const st = $("#stage");
   $("#app").classList.toggle("focus", S.focus != null);
+  const drieD = S.focus == null && S.view === "hand" && window.Hand3D && Hand3D.ok;
+  if (!drieD) { st.style.display = ""; if (window.Hand3D && Hand3D.ok) Hand3D.show(false); }
   if (S.focus != null) {
     const i = S.focus, n = D.nails[i], L = nailLen(D.shape, D.length);
     const skin = HUID[D.skin] || HUID[1];
@@ -97,6 +99,11 @@ function tekenNu() {
     setVB(-w / 2, top - 18, w, hgt + 18);
     st.innerHTML = `<defs>${skinDefs("f", skin)}</defs><g ${i >= 5 ? 'transform="scale(-1 1)"' : ""}>${finger}<g data-nail="${i}" data-local="1">${inner}</g></g>`;
     $("#focusTitle").innerHTML = `${VINGERNAAM[i % 5]}<small>${i < 5 ? "RECHTERHAND" : "LINKERHAND"} · ${(i % 5) + 1} van 5</small>`;
+  } else if (S.view === "hand" && window.Hand3D && Hand3D.ok) {
+    st.innerHTML = "";
+    st.style.display = "none";
+    Hand3D.show(true);
+    Hand3D.update(D, S.hand, S.sel);
   } else if (S.view === "hand") {
     pas(210, null, 562, 440, 604);
     const nopt = (i) => ({ sel: S.sel === i });
@@ -473,7 +480,9 @@ window.addEventListener("pointerup", (e) => {
     const x = e.clientX, y = e.clientY - 44;
     const el = document.elementFromPoint(x, y);
     const nl = el && el.closest && el.closest("#stage [data-nail]");
-    if (nl) {
+    const op3d = el && el.closest && el.closest("#stage3d") && window.Hand3D && Hand3D.ok ? Hand3D.pick(x, y) : null;
+    if (op3d && op3d.i != null) voegToe(trayDrag.t, { i: op3d.i, x: op3d.x, y: op3d.y });
+    else if (nl) {
       const i = +nl.dataset.nail, p = lokaal(nl, x, y);
       voegToe(trayDrag.t, { i, x: p.x, y: p.y });
     } else toast("Laat los boven een nagel", 1500);
@@ -536,7 +545,8 @@ $("#galGrid").addEventListener("click", (e) => {
 // ---------- delen als afbeelding ----------
 async function maakAfbeelding() {
   const W = 1080, H = 1350;
-  const hand = `<g transform="translate(${(W - 440 * 1.55) / 2 + 10 * 1.55} 40) scale(1.55)">${handSVG(D, S.hand, "ex")}</g>`;
+  const foto3d = window.Hand3D && Hand3D.ok ? Hand3D.snapshot(1080, 860) : null;
+  const hand = foto3d ? `<image href="${foto3d}" x="0" y="160" width="1080" height="860"/>` : `<g transform="translate(${(W - 440 * 1.55) / 2 + 10 * 1.55} 40) scale(1.55)">${handSVG(D, S.hand, "ex")}</g>`;
   let tips = "";
   const xs = [], gap = 92, mid = W / 2;
   for (let s = 0; s < 5; s++) xs.push(mid - 70 - (4 - s) * gap);
@@ -583,6 +593,17 @@ $("#btnDoShare").onclick = async () => {
     try { await navigator.share({ files: [file], title: D.naam || "Nageldesign" }); } catch (e) { /* geannuleerd */ }
   } else $("#btnDownload").click();
 };
+
+// ---------- 3D-hand ----------
+window.hand3dTap = (i) => tik(i);
+window.__hand3dReady = () => {
+  alles();
+  if (S.view === "hand" && !localStorage.getItem("nagelatelier.draaitip")) {
+    localStorage.setItem("nagelatelier.draaitip", "1");
+    setTimeout(() => toast("Sleep met je vinger om de hand rond te draaien", 3200), 400);
+  }
+};
+$("#handSw").addEventListener("click", () => window.Hand3D && Hand3D.ok && Hand3D.reset());
 
 // ---------- start ----------
 window.addEventListener("resize", () => teken());

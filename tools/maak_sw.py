@@ -5,6 +5,8 @@ hier = pathlib.Path(__file__).resolve().parent.parent
 index = (hier / "index.html").read_text()
 bestanden = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"]
 bestanden += re.findall(r'(?:href|src)="([^"#:]+\?v=\d+)"', index)
+bestanden += ["3d/hand.json?v=2", "3d/hand.bin?v=2", "vendor/three.module.js", "vendor/three.core.js",
+              "vendor/addons/controls/OrbitControls.js", "vendor/addons/environments/RoomEnvironment.js"]
 bestanden = list(dict.fromkeys(bestanden))
 h = hashlib.sha1()
 for b in bestanden:

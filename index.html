@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="globaldefs"></defs></svg>
@@ -31,6 +31,7 @@
   </header>
 
   <main id="stageWrap">
+    <div id="stage3d"></div>
     <svg id="stage" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="stagebar" id="stagebar">
       <div class="seg" id="viewSeg"><button data-v="hand">Hand</button><button data-v="tips">Alle tien</button></div>
@@ -85,8 +86,10 @@
 
 <div class="ghost" id="ghost"></div>
 
-<script src="data.js?v=1"></script>
-<script src="render.js?v=1"></script>
-<script src="app.js?v=1"></script>
+<script src="data.js?v=2"></script>
+<script src="render.js?v=2"></script>
+<script src="app.js?v=3"></script>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }</script>
+<script type="module" src="hand3d.js?v=2"></script>
 </body>
 </html>

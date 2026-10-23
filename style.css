@@ -42,6 +42,8 @@ svg { display: block; }
   box-shadow: inset 0 0 0 1px rgba(43, 32, 38, .04);
 }
 #stage { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+#stage3d { position: absolute; inset: 0; display: none; touch-action: none; }
+#stage3d canvas { display: block; touch-action: none; }
 #stage [data-nail] { cursor: pointer; }
 #stage [data-deco] { cursor: grab; }
 .tiplabel { font: 600 8.5px var(--sans); fill: #B3A3A8; letter-spacing: 2.4px; }
