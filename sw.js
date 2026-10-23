@@ -1,6 +1,6 @@
 // Gegenereerd door tools/maak_sw.py — niet met de hand aanpassen.
-const CACHE = "nagelatelier-879f29bb7b";
-const BESTANDEN = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'style.css?v=2', 'data.js?v=2', 'render.js?v=2', 'app.js?v=3', 'hand3d.js?v=2', '3d/hand.json?v=2', '3d/hand.bin?v=2', 'vendor/three.module.js', 'vendor/three.core.js', 'vendor/addons/controls/OrbitControls.js', 'vendor/addons/environments/RoomEnvironment.js'];
+const CACHE = "nagelatelier-33a0b522e9";
+const BESTANDEN = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'style.css?v=3', 'data.js?v=2', 'render.js?v=2', 'app.js?v=4', 'handfoto.js?v=2', 'foto/nagels.json?v=2'];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(BESTANDEN)).then(() => self.skipWaiting()));
 });
@@ -16,5 +16,9 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(fetch(req).catch(() => caches.match("index.html")));
     return;
   }
-  e.respondWith(caches.match(req).then((r) => r || fetch(req)));
+  // foto's: na de eerste keer uit de cache
+  e.respondWith(caches.match(req).then((r) => r || fetch(req).then((res) => {
+    if (res.ok && req.url.includes("/foto/")) { const k = res.clone(); caches.open(CACHE).then((c) => c.put(req, k)); }
+    return res;
+  })));
 });

@@ -11,14 +11,14 @@ const leeg = () => ({ shape: "almond", length: "middel", skin: 1, naam: "",
   nails: Array(10).fill(0).map(() => ({ c: "#F2C9C4", c2: "#FFFFFF", fx: "effen", fin: "glans", deco: [] })) });
 
 let D = leeg();
-const S = { view: "hand", hand: "R", sel: "all", focus: null, tab: "kleur", slot: 1, deco: null, thema: "Alles" };
+const S = { aanzicht: "boven", view: "hand", hand: "R", sel: "all", focus: null, tab: "kleur", slot: 1, deco: null, thema: "Alles" };
 let undo = [], redo = [];
 
 try {
   const opg = JSON.parse(localStorage.getItem(OPSLAG) || "null");
   if (opg && opg.D && Array.isArray(opg.D.nails) && opg.D.nails.length === 10) {
     D = opg.D;
-    Object.assign(S, { view: opg.view || "hand", hand: opg.hand || "R", tab: opg.tab || "kleur" });
+    Object.assign(S, { view: opg.view || "hand", hand: opg.hand || "R", tab: opg.tab || "kleur", aanzicht: opg.aanzicht || "boven" });
   }
 } catch (e) { /* begin leeg */ }
 
@@ -26,7 +26,7 @@ let saveT;
 function bewaar() {
   clearTimeout(saveT);
   saveT = setTimeout(() => {
-    try { localStorage.setItem(OPSLAG, JSON.stringify({ D, view: S.view, hand: S.hand, tab: S.tab })); } catch (e) {}
+    try { localStorage.setItem(OPSLAG, JSON.stringify({ D, view: S.view, hand: S.hand, tab: S.tab, aanzicht: S.aanzicht })); } catch (e) {}
   }, 250);
 }
 function commit() {
@@ -81,8 +81,9 @@ function teken() {
 function tekenNu() {
   const st = $("#stage");
   $("#app").classList.toggle("focus", S.focus != null);
-  const drieD = S.focus == null && S.view === "hand" && window.Hand3D && Hand3D.ok;
-  if (!drieD) { st.style.display = ""; if (window.Hand3D && Hand3D.ok) Hand3D.show(false); }
+  const foto = S.focus == null && S.view === "hand" && window.HandFoto && HandFoto.ok;
+  if (!foto) { st.style.display = ""; if (window.HandFoto && HandFoto.ok) HandFoto.show(false); }
+  $("#app").classList.toggle("fotohand", !!foto);
   if (S.focus != null) {
     const i = S.focus, n = D.nails[i], L = nailLen(D.shape, D.length);
     const skin = HUID[D.skin] || HUID[1];
@@ -99,11 +100,12 @@ function tekenNu() {
     setVB(-w / 2, top - 18, w, hgt + 18);
     st.innerHTML = `<defs>${skinDefs("f", skin)}</defs><g ${i >= 5 ? 'transform="scale(-1 1)"' : ""}>${finger}<g data-nail="${i}" data-local="1">${inner}</g></g>`;
     $("#focusTitle").innerHTML = `${VINGERNAAM[i % 5]}<small>${i < 5 ? "RECHTERHAND" : "LINKERHAND"} · ${(i % 5) + 1} van 5</small>`;
-  } else if (S.view === "hand" && window.Hand3D && Hand3D.ok) {
+  } else if (foto) {
     st.innerHTML = "";
     st.style.display = "none";
-    Hand3D.show(true);
-    Hand3D.update(D, S.hand, S.sel);
+    HandFoto.show(true);
+    HandFoto.update(D, S.hand, S.sel, S.aanzicht);
+    $$("#aanzichtSeg button").forEach((b) => b.classList.toggle("on", b.dataset.a === S.aanzicht));
   } else if (S.view === "hand") {
     pas(210, null, 562, 440, 604);
     const nopt = (i) => ({ sel: S.sel === i });
@@ -480,7 +482,7 @@ window.addEventListener("pointerup", (e) => {
     const x = e.clientX, y = e.clientY - 44;
     const el = document.elementFromPoint(x, y);
     const nl = el && el.closest && el.closest("#stage [data-nail]");
-    const op3d = el && el.closest && el.closest("#stage3d") && window.Hand3D && Hand3D.ok ? Hand3D.pick(x, y) : null;
+    const op3d = el && el.closest && el.closest("#stagefoto") && window.HandFoto && HandFoto.ok ? HandFoto.pick(x, y) : null;
     if (op3d && op3d.i != null) voegToe(trayDrag.t, { i: op3d.i, x: op3d.x, y: op3d.y });
     else if (nl) {
       const i = +nl.dataset.nail, p = lokaal(nl, x, y);
@@ -545,8 +547,8 @@ $("#galGrid").addEventListener("click", (e) => {
 // ---------- delen als afbeelding ----------
 async function maakAfbeelding() {
   const W = 1080, H = 1350;
-  const foto3d = window.Hand3D && Hand3D.ok ? Hand3D.snapshot(1080, 860) : null;
-  const hand = foto3d ? `<image href="${foto3d}" x="0" y="160" width="1080" height="860"/>` : `<g transform="translate(${(W - 440 * 1.55) / 2 + 10 * 1.55} 40) scale(1.55)">${handSVG(D, S.hand, "ex")}</g>`;
+  const foto3d = window.HandFoto && HandFoto.ok && S.view === "hand" ? HandFoto.snapshot() : null;
+  const hand = foto3d ? `<image href="${foto3d}" x="${(1080 - 688) / 2}" y="150" width="688" height="860"/>` : `<g transform="translate(${(W - 440 * 1.55) / 2 + 10 * 1.55} 40) scale(1.55)">${handSVG(D, S.hand, "ex")}</g>`;
   let tips = "";
   const xs = [], gap = 92, mid = W / 2;
   for (let s = 0; s < 5; s++) xs.push(mid - 70 - (4 - s) * gap);
@@ -595,15 +597,9 @@ $("#btnDoShare").onclick = async () => {
 };
 
 // ---------- 3D-hand ----------
-window.hand3dTap = (i) => tik(i);
-window.__hand3dReady = () => {
-  alles();
-  if (S.view === "hand" && !localStorage.getItem("nagelatelier.draaitip")) {
-    localStorage.setItem("nagelatelier.draaitip", "1");
-    setTimeout(() => toast("Sleep met je vinger om de hand rond te draaien", 3200), 400);
-  }
-};
-$("#handSw").addEventListener("click", () => window.Hand3D && Hand3D.ok && Hand3D.reset());
+window.fotoTap = (i) => tik(i);
+window.__fotoReady = () => alles();
+$$("#aanzichtSeg button").forEach((b) => (b.onclick = () => { S.aanzicht = b.dataset.a; alles(); }));
 
 // ---------- start ----------
 window.addEventListener("resize", () => teken());
