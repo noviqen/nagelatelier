@@ -185,3 +185,79 @@ const DECO_EXTRA = {
   wolkje: ({ hx }) => `<path d="M-38,18 C-50,18 -50,0 -36,-2 C-36,-18 -16,-24 -8,-12 C-2,-30 26,-28 26,-8 C42,-10 46,16 32,18 Z" fill="${hx}" stroke="${dark(hx, 0.12)}" stroke-width="1.6"/>` +
     `<path d="M-30,6 C-20,10 10,10 26,6" stroke="#fff" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>`,
 };
+
+// ---------- uitbreiding 2: gouden glitterlijnen, jelly-vlekken, micro-French, swooshes, 3D-ribbels, starburst ----------
+EFFECTEN.push(
+  { id: "goudvlak", naam: "Goudvlak", c2: "Vlakken" },
+  { id: "vlekken", naam: "Jelly-vlekken", c2: "Vlekken" },
+  { id: "microfrench", naam: "Micro-French", c2: "Tip" },
+  { id: "swoosh", naam: "Gouden swoosh", c2: null },
+  { id: "ribbel", naam: "3D-ribbels", c2: null },
+);
+EFFECTEN.forEach((e) => (EFFECT[e.id] = e));
+const burstDef = { id: "burst", naam: "Starburst", kleur: "goud", maat: 50 };
+VERSIERINGEN.push(burstDef); VERSIERING.burst = burstDef;
+
+// glitterlijn: goud verloop + fonkelende puntjes
+const glitter = (d, w, extra = "") => `<path d="${d}" stroke="url(#m-goud)" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round" ${extra}/>` +
+  `<path d="${d}" stroke="#FFF6D2" stroke-width="${f1(w * 0.42)}" fill="none" stroke-dasharray="0.1 ${f1(w * 0.9)}" stroke-linecap="round" opacity=".95" ${extra}/>` +
+  `<path d="${d}" stroke="#8A6414" stroke-width="${f1(w * 0.3)}" fill="none" stroke-dasharray="0.1 ${f1(w * 1.3)}" stroke-dashoffset="${f1(w * 0.5)}" stroke-linecap="round" opacity=".55" ${extra}/>`;
+// organische vlek rond (cx,cy)
+function blob(R, cx, cy, r, punten = 7, wobbel = 0.35) {
+  const p = [];
+  for (let k = 0; k < punten; k++) { const a = (k / punten) * Math.PI * 2, rr = r * (1 - wobbel / 2 + R() * wobbel); p.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 1.25]); }
+  let d = `M${f1((p[0][0] + p[1][0]) / 2)},${f1((p[0][1] + p[1][1]) / 2)}`;
+  for (let k = 1; k <= punten; k++) { const a = p[k % punten], b = p[(k + 1) % punten]; d += ` Q${f1(a[0])},${f1(a[1])} ${f1((a[0] + b[0]) / 2)},${f1((a[1] + b[1]) / 2)}`; }
+  return d + "Z";
+}
+Object.assign(TECH_EXTRA, {
+  goudvlak: ({ c, c2, L, R, full }) => {
+    const v1 = blob(R, -14 + R() * 10, -L * (0.3 + R() * 0.15), 26 + R() * 8, 8, 0.45);
+    const v2 = blob(R, 18 - R() * 8, -L * (0.68 + R() * 0.1), 14 + R() * 6, 6, 0.4);
+    return full(c) + `<path d="${v1}" fill="${c2}"/><path d="${v2}" fill="${c2}"/>` + glitter(v1, 3.6) + glitter(v2, 3.2);
+  },
+  vlekken: ({ c, c2, L, R, full }) => {
+    let g = "";
+    const z = 25;
+    for (let row = 0; row * z * 0.9 < L + 24; row++) for (let col = -2; col <= 2; col++) {
+      const cx = col * z + (row % 2 ? z / 2 : 0) + (R() - 0.5) * 6, cy = 10 - row * z * 0.9 + (R() - 0.5) * 6;
+      g += `<path d="${blob(R, cx, cy, 9.5 + R() * 2.5, 7, 0.5)}" fill="${c2}" opacity="${f1(0.78 + R() * 0.17)}"/>`;
+    }
+    return full(c) + `<g filter="url(#bl1)">${g}</g>`;
+  },
+  microfrench: ({ c, c2, L, full, top }) => {
+    const d = 13, yS = -L + d * 2.1, yC = 2 * (-L + d) - yS;
+    return full(c) + `<path d="M-60,${f1(top)} H60 V${f1(yS)} Q0,${f1(yC)} -60,${f1(yS)} Z" fill="${c2}"/>`;
+  },
+  swoosh: ({ c, L, R, full }) => {
+    let g = "";
+    const kant = R() < 0.5 ? -1 : 1, y0 = -L * (0.32 + R() * 0.12);
+    for (let k = 0; k < 3; k++) {
+      const y = y0 - k * 11, x0 = kant * 60, x1 = kant * (8 - R() * 10);
+      g += glitter(`M${x0},${f1(y + 7)} C${f1(kant * 42)},${f1(y - 8)} ${f1(kant * 26)},${f1(y + 10)} ${f1(x1)},${f1(y - 3)}`, 4.4);
+    }
+    return full(c) + g;
+  },
+  ribbel: ({ c, L, R, full }) => {
+    let g = "";
+    for (let y = -L + 10; y < 8; y += 17) {
+      const p = `M-60,${f1(y + 6)} Q0,${f1(y - 5)} 60,${f1(y + 6)}`;
+      g += `<path d="${p}" transform="translate(0 5)" stroke="${dark(c, 0.32)}" stroke-width="5" fill="none" opacity=".6" filter="url(#bl1)"/>` +
+        `<path d="${p}" stroke="${light(c, 0.1)}" stroke-width="12" fill="none" stroke-linecap="round"/>` +
+        `<path d="${p}" transform="translate(0 -2.6)" stroke="#fff" stroke-width="3" fill="none" opacity=".7" filter="url(#bl1)"/>`;
+    }
+    let vlok = "";
+    for (let k = 0; k < 4 + Math.floor(R() * 3); k++) { const x = -34 + R() * 68, y = -L * 0.1 - R() * L * 0.8; vlok += glitter(`M${f1(x)},${f1(y)} l${f1(2 + R() * 3)},${f1(-1 - R() * 2)} l${f1(1 + R() * 2)},${f1(2 + R() * 2)}`, 2.6); }
+    return full(c) + g + vlok;
+  },
+});
+DECO_EXTRA.burst = () => {
+  let p = "";
+  for (let k = 0; k < 8; k++) {
+    const a = (k * 45 - 90) * Math.PI / 180, r = k % 2 ? 28 : 50, b = k % 2 ? 4.5 : 6.5, px = -Math.sin(a) * b, py = Math.cos(a) * b;
+    p += `M${f1(px)},${f1(py)} L${f1(Math.cos(a) * r)},${f1(Math.sin(a) * r)} L${f1(-px)},${f1(-py)} Z `;
+  }
+  let fonk = "";
+  [[0, -30], [0, 30], [-30, 0], [30, 0], [-14, -14], [12, 12]].forEach(([x, y]) => (fonk += `<circle cx="${x}" cy="${y}" r="1.4" fill="#FFF6D2"/>`));
+  return `<path d="${p}" fill="url(#m-goud)"/><circle r="9" fill="url(#m-goud)"/><circle cx="-2" cy="-2" r="2.6" fill="#FFF6D2"/>${fonk}`;
+};

@@ -175,7 +175,7 @@ function genereer1({ sfeer = "verras", kleur = "vrij", niveau = 2 } = {}) {
   let h = kies(F.hoofd), a = kies(F.accent.filter((x) => x !== h)) || "#FFFFFF", dk = kies(F.deco);
   if (sfeer === "herfst" && kleur === "vrij") { h = kies(HERFST); }
   const res = stijl.maak({ h, a, dk, L, fam, sfeer, niv: niveau });
-  const vijf = verrijk(res.nagels, niveau, L, sfeer);
+  const vijf = res.puur ? res.nagels : verrijk(res.nagels, niveau, L, sfeer);
   return { shape, length, naam: res.naam, nails: vijf.concat(JSON.parse(JSON.stringify(vijf))), stijl: stijl.id };
 }
 
@@ -401,3 +401,26 @@ function verrijk(nagels, niveau, L, sfeer) {
   });
   return nagels;
 }
+
+// ---------- Mix & match goud (glitterlijnen, jelly-vlekken, micro-French, ribbels) ----------
+const MIXPALET = [
+  { naam: "blauw, pruim en goud", k: ["#8FAFD8", "#7A1F46", "#EECBB0", "#9C8473"], l: "#A9C3E6", d: "#8E2E58" },
+  { naam: "salie, terracotta en goud", k: ["#9DB8A0", "#B5652B", "#EFD3C6", "#6E7B4F"], l: "#B7E4C7", d: "#C2763E" },
+  { naam: "lila, framboos en goud", k: ["#CDB4DB", "#D63A75", "#F2D7CF", "#5B2A86"], l: "#E7DDF7", d: "#E85A8A" },
+  { naam: "zwart, nude en goud", k: ["#141214", "#7A0019", "#EECBB0", "#4A4543"], l: "#3A3536", d: "#A3001E" },
+];
+STIJLEN.push({ id: "mixgoud", niveau: 2, sferen: ["trendy", "grafisch", "feest", "herfst", "print", "verras"],
+  maak: ({ fam, L, niv }) => {
+    const P = fam === "groen" ? MIXPALET[1] : fam === "roze" || fam === "pastel" ? MIXPALET[2] : fam === "zwartwit" || fam === "donker" ? MIXPALET[3] : kies(MIXPALET);
+    const [blauw, pruim, nude, mokka] = P.k;
+    const pool = [
+      nagel(mokka, "effen", "#fff", [dc("burst", -4, -L * 0.48, 50, "goud")]),
+      nagel(nude, "microfrench", pruim, [dc("bolletje", 0, -L + 15, 7, "goud")]),
+      nagel(nude, "swoosh"),
+      niv >= 3 ? nagel("#F4EEE9", "vlekken", pruim, [dc("hart", 8, -26, 13, "goud")]) : nagel(nude, "microfrench", blauw),
+      niv >= 3 ? nagel(blauw, "goudvlak", P.l) : nagel(blauw, "swoosh"),
+      niv >= 3 ? nagel(pruim, "goudvlak", P.d) : nagel(pruim, "effen", "#fff", [dc("burst", 6, -L * 0.42, 44, "goud")]),
+      niv >= 3 ? nagel(blauw, "ribbel") : nagel(blauw),
+    ];
+    return { naam: `Mix & match ${P.naam}`, nagels: set5(mengen(pool).slice(0, 5)), puur: true };
+  } });

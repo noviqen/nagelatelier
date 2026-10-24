@@ -399,3 +399,67 @@ Object.assign(VERSIER, {
     { t: "Aardbeitjes: kroontje en pitjes", x: "Groen kroontje met het liner-penseel en kleine gele pitjes met de punt van de dotting tool.", lamp: true }], bron: ["stippen"], niveau: 2 },
   wolkje: { fase: "voor", spullen: (c) => ["Dotting tools", `Gellak ${dkn(c)}`], stappen: (c, op) => [{ t: "Wolkjes", x: `${op[0].toUpperCase() + op.slice(1)}: zet drie à vier stipjes ${dkn(c)} in verschillende maten tegen elkaar aan tot een wolkje, met een platte onderkant.`, lamp: true }], bron: ["stippen"], niveau: 1 },
 });
+
+// ---------- uitbreiding 2: goud, jelly-vlekken, micro-French, swoosh, 3D-ribbels, starburst ----------
+Object.assign(BRONNEN, {
+  goudliner: ["Kiara Sky – Gold Exhibit gel-art liner (gebruik)", "https://www.beyondpolish.com/products/kiara-sky-gel-art-gold-exhibit"],
+  goudabstract: ["NAILPRO – Gilded Abstract Nails", "https://www.medestheticsmag.com/home/article/22578583/nailpro-gilded-holiday-nail-art-tutorial"],
+  microfrench: ["StyleRave – micro French manicure", "https://stylerave.com/how-to-do-micro-french-manicure/"],
+  microfrench2: ["Pink Gellac – French op korte nagels", "https://pinkgellac.com/blogs/tips-tricks/how-to-do-a-french-manicure-on-short-nails"],
+  embossing: ["Madam Glam – 3D embossing gel", "https://madamglam.com/products/white-3d-embossing-gel"],
+  embossing2: ["The Gel Bottle – 3D Studio Gel (handleiding)", "https://assets.thegelbottle.com/m/799b9f87341e7914/original/TGB_Application-Guide_3D-Studio-Gel.pdf"],
+  blooming: ["Gelish – Blooming 201", "https://gelish.com/nail-style-blog/blooming-201"],
+  giraffe: ["Home of Nail Art – animal print", "https://www.homeofnailart.com/blogs/nail-art-tutorials/animal-print-nail-art-tutorial"],
+  sunburst: ["Lulus – nude nails met gouden starburst", "https://www.lulus.com/blog/?p=241791"],
+});
+EXTRA_NAAM["#8FAFD8"] = "Duifblauw"; EXTRA_NAAM["#A9C3E6"] = "Lichtblauw"; EXTRA_NAAM["#9CB9E0"] = "Poederblauw"; EXTRA_NAAM["#7A1F46"] = "Pruimrood";
+EXTRA_NAAM["#8E2E58"] = "Framboospaars"; EXTRA_NAAM["#EECBB0"] = "Perzik nude"; EXTRA_NAAM["#9C8473"] = "Mokka";
+Object.entries(EXTRA_NAAM).forEach(([h, n]) => { if (!KLEURNAAM[h]) KLEURNAAM[h] = n; });
+
+Object.assign(TECHNIEK, {
+  goudvlak: {
+    spullen: (n) => [`Gellak ${kc(n.c)}`, `Gellak ${kc(n.c2)} (vlakken)`, "Gouden glitter gel-liner (of gouden art-gel met fijn liner-penseel)", "Detailpenseel"],
+    stappen: (n, op) => [
+      { t: `Kleur: ${kc(n.c)}`, x: `Twee dunne lagen ${kc(n.c)} ${op}, elke laag apart uitharden.`, lamp: true },
+      { t: "Vlakken", x: `Schilder met het detailpenseel één of twee organische vlakken in ${kc(n.c2)} (geen perfecte rondjes; mag tot de rand lopen), dun en egaal.`, lamp: true },
+      { t: "Gouden contour", x: "Trek met weinig gouden glittergel een smalle, gelijkmatige contour langs de uitgeharde vlakken en hard uit. Te weinig glitter? Breng dan een tweede dunne lijn over de uitgeharde contour aan en hard opnieuw uit (niet nat op nat stapelen).", lamp: true },
+    ],
+    bron: ["goudliner", "goudabstract"], niveau: 3, min: 25,
+  },
+  vlekken: {
+    spullen: (n) => [`Gellak ${kc(n.c)} (melkwit/ondergrond)`, "Blooming gel", `Doorschijnende jelly-gellak ${kc(n.c2)}`, "Dotting tool"],
+    stappen: (n, op) => [
+      { t: `Ondergrond: ${kc(n.c)}`, x: `Twee dunne lagen ${kc(n.c)} ${op}, elke laag apart uitharden.`, lamp: true },
+      { t: "Jelly-vlekken (per nagel)", x: `Werk één nagel tegelijk af: breng een dunne laag blooming gel aan en hard nog niet uit. Zet met de dotting tool en weinig jelly-gellak onregelmatige vlekken ${kc(n.c2)} in een losjes giraffe-patroon, met ruimte ertussen. Laat kort uitvloeien en hard uit zodra de smalle, lichte tussenruimtes goed zijn. Dan de volgende nagel.`, lamp: true },
+    ],
+    bron: ["giraffe", "blooming"], niveau: 3, min: 22,
+  },
+  microfrench: {
+    spullen: (n) => [`Gellak ${kc(n.c)} (basis)`, `Gellak ${kc(n.c2)} (tip)`, "Lang, dun liner-penseel", "Schuin penseeltje + cleaner"],
+    stappen: (n, op) => [
+      { t: `Basis: ${kc(n.c)}`, x: `Een dunne laag ${kc(n.c)} ${op} en uitharden; zo nodig een tweede dunne laag, apart uitharden.`, lamp: true },
+      { t: "Micro-tip", x: `Trek met het lange, dunne liner-penseel en weinig ${kc(n.c2)} een haarfijne boog langs de vrije rand, als richtmaat ± 0,5–1 mm breed. Corrigeer de binnenrand met een schoon detailpenseel, eventueel heel licht bevochtigd met cleaner zonder de kleur te laten uitlopen; laat de cleaner verdampen en hard uit.`, lamp: true },
+    ],
+    bron: ["microfrench", "microfrench2", "french"], niveau: 2, min: 14,
+  },
+  swoosh: {
+    spullen: (n) => [`Gellak ${kc(n.c)}`, "Gouden glitter gel-liner (of gouden art-gel met fijn liner-penseel)"],
+    stappen: (n, op) => [
+      { t: `Kleur: ${kc(n.c)}`, x: `Twee dunne lagen ${kc(n.c)} ${op}, elke laag apart uitharden.`, lamp: true },
+      { t: "Gouden swooshes", x: "Trek met de gouden glitter-liner vanaf één zijkant drie golvende lijnen naast elkaar, ongeveer even ver uit elkaar en naar het midden toe dunner uitlopend.", lamp: true },
+    ],
+    bron: ["goudliner", "golf"], niveau: 2, min: 14,
+  },
+  ribbel: {
+    spullen: (n) => [`Gellak ${kc(n.c)}`, "Vormvaste 3D-gel die volgens de fabrikant geschikt is voor penseelribbels", "Fijn penseel", "Gouden glitter gel-liner"],
+    stappen: (n, op) => [
+      { t: `Kleur: ${kc(n.c)}`, x: `Twee dunne lagen ${kc(n.c)} ${op}, elke laag apart uitharden.`, lamp: true },
+      { t: "Volgorde checken", x: "Kijk vóór de ribbels wat jouw 3D-gel voorschrijft: sommige gaan óp de afgewerkte top coat (dan eerst goudvlekjes en top coat, uitharden, plaklaag eraf), andere krijgen zelf nog een top coat erover." },
+      { t: "Goudvlekjes", x: "Zet met de gouden glitter-liner een paar kleine vlekjes verspreid over de nagel.", lamp: true },
+      { t: "3D-ribbels", x: "Trek met het fijne penseel afzonderlijke, licht gebogen dwarse ribbels die elkaar niet raken, binnen de voorgeschreven laagdikte. Hard elke groep uit voordat je verder gaat. Geef je nog top coat, voorkom dan dat die tussen de ribbels ophoopt.", lamp: true },
+    ],
+    bron: ["embossing", "embossing2", "goudliner"], niveau: 3, min: 22,
+  },
+});
+VERSIER.burst = { fase: "voor", spullen: () => ["Gouden glitter gel-liner (of gouden art-gel met striping-penseel)"], stappen: (c, op) => [
+  { t: "Starburst", x: `${op[0].toUpperCase() + op.slice(1)}: zet met de gouden glitter-liner een stipje als midden en trek vandaar vier lange, dunne stralen (kruis) en daartussen vier kortere. Laat ze naar de punt smal uitlopen.`, lamp: true }], bron: ["sunburst", "goudliner"], niveau: 2 };
